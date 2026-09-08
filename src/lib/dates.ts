@@ -33,6 +33,19 @@ export function amountLabel(amount: number, unit: string) {
   return `${rounded} ${unit}`
 }
 
+export function currentTimeValue(date = new Date()) {
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${hours}:${minutes}`
+}
+
+export function takenAtFromTime(time: string, day = new Date()) {
+  const [hours, minutes] = time.split(':').map(Number)
+  const taken = new Date(day)
+  taken.setHours(hours, minutes, 0, 0)
+  return taken.toISOString()
+}
+
 export function localMonthRange(year: number, monthIndex: number) {
   const start = new Date(year, monthIndex, 1)
   start.setHours(0, 0, 0, 0)

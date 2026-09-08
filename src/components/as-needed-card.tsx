@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { amountLabel, timeLabel } from '../lib/dates.ts'
+import { DoseTimeField } from './dose-time-field.tsx'
+import { amountLabel, currentTimeValue, takenAtFromTime, timeLabel } from '../lib/dates.ts'
 import { levelCopy, nextLevel, wouldCrossLimit } from '../lib/threshold.ts'
 import type { AsNeededStatus } from '../lib/types.ts'
 import { useApp } from '../context/app-context.tsx'
@@ -16,6 +17,7 @@ export function AsNeededCard({ item }: { item: AsNeededStatus }) {
   const [busy, setBusy] = useState(false)
   const [confirm, setConfirm] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [time, setTime] = useState(() => currentTimeValue())
   const unit = item.medication.unit
   const ratio = item.max > 0 ? Math.min(1, item.used / item.max) : 0
   const last = item.recentDoses[0]
@@ -29,8 +31,9 @@ export function AsNeededCard({ item }: { item: AsNeededStatus }) {
     setBusy(true)
     setError(null)
     try {
-      await addDose(item.medication.id, amount)
+      await addDose(item.medication.id, amount, takenAtFromTime(time))
       setConfirm(null)
+      setTime(currentTimeValue())
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Could not log that dose.')
     } finally {
@@ -106,6 +109,14 @@ export function AsNeededCard({ item }: { item: AsNeededStatus }) {
           {error}
         </p>
       ) : null}
+
+      <DoseTimeField
+        id={`as-needed-time-${item.medication.id}`}
+        label="Time taken"
+        value={time}
+        disabled={busy}
+        onChange={setTime}
+      />
 
       <div className="mt-4 grid grid-cols-3 gap-2">
         <button

@@ -41,8 +41,20 @@ export function MedDialog() {
       setError('Give the medication a name.')
       return
     }
+    if (draft.kind === 'daily' && !(Number(draft.cycleOnDays) > 0)) {
+      setError('Set how many days the medication is taken.')
+      return
+    }
+    if (draft.kind === 'daily' && Number(draft.cycleOffDays) < 0) {
+      setError('Break days cannot be negative.')
+      return
+    }
+    if (draft.kind === 'daily' && !draft.cycleStart) {
+      setError('Pick when the cycle starts.')
+      return
+    }
     if (draft.kind === 'daily' && !(Number(draft.targetDose) > 0)) {
-      setError('Set the current daily dose.')
+      setError('Set the dose each time.')
       return
     }
     if (draft.kind === 'as_needed' && !(Number(draft.maxAmount) > 0)) {

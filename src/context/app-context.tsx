@@ -30,7 +30,7 @@ type AppContextValue = {
   setPersonId: (id: string) => void
   completeOnboarding: () => void
   refresh: () => Promise<void>
-  addDose: (medicationId: string, amount: number) => Promise<void>
+  addDose: (medicationId: string, amount: number, takenAt?: string) => Promise<void>
   removeDose: (doseId: string) => Promise<void>
 }
 
@@ -92,12 +92,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const addDose = useCallback(
-    async (medicationId: string, amount: number) => {
+    async (medicationId: string, amount: number, takenAt?: string) => {
       const loggedBy =
         today?.people.find((entry) => entry.role === 'helper')?.id ??
         personId ??
         'person-samuel'
-      await logDose({ medicationId, loggedBy, amount })
+      await logDose({ medicationId, loggedBy, amount, takenAt })
       await refresh()
     },
     [personId, refresh, today?.people],

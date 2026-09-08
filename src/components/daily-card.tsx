@@ -1,5 +1,7 @@
-import { useState } from 'react'
-import { amountLabel, timeLabel } from '../lib/dates.ts'
+import { useEffect, useState } from 'react'
+import { DoseTimeField } from './dose-time-field.tsx'
+import { amountLabel, currentTimeValue, takenAtFromTime, timeLabel } from '../lib/dates.ts'
+import { scheduleSummary } from '../lib/schedule.ts'
 import type { DailyStatus, DoseTrend } from '../lib/types.ts'
 import { useApp } from '../context/app-context.tsx'
 
@@ -12,17 +14,29 @@ const trendCopy: Record<DoseTrend, string> = {
 export function DailyCard({ item }: { item: DailyStatus }) {
   const { addDose, removeDose } = useApp()
   const [busy, setBusy] = useState(false)
+  const [time, setTime] = useState(() => currentTimeValue())
   const dose = item.medication.targetDose ?? 1
   const unit = item.medication.unit
   const trend = item.medication.trend ?? 'stable'
+  const schedule = scheduleSummary(
+    item.medication.cycleOnDays,
+    item.medication.cycleOffDays,
+  )
 
-  async function toggle() {
+  useEffect(() => {
+    if (item.todayDoses[0]) {
+      setTime(currentTimeValue(new Date(item.todayDoses[0].takenAt)))
+    }
+  }, [item.todayDoses])
+
+  async function toggle(checked: boolean) {
     setBusy(true)
     try {
-      if (item.takenToday && item.todayDoses[0]) {
+      if (!checked && item.todayDoses[0]) {
         await removeDose(item.todayDoses[0].id)
-      } else {
-        await addDose(item.medication.id, dose)
+        setTime(currentTimeValue())
+      } else if (checked) {
+        await addDose(item.medication.id, dose, takenAtFromTime(time))
       }
     } finally {
       setBusy(false)
@@ -40,7 +54,7 @@ export function DailyCard({ item }: { item: DailyStatus }) {
             {item.medication.name}
           </h2>
           <p className="text-mute">
-            {amountLabel(dose, unit)}
+            {amountLabel(dose, unit)} · {schedule}
             {item.medication.previousDose
               ? ` · was ${amountLabel(item.medication.previousDose, unit)}`
               : ''}
@@ -63,25 +77,38 @@ export function DailyCard({ item }: { item: DailyStatus }) {
         <p className="mt-3 text-sm text-mute">{item.medication.notes}</p>
       ) : null}
 
-      <button
-        type="button"
-        disabled={busy}
-        aria-pressed={item.takenToday}
-        aria-busy={busy}
-        onClick={() => void toggle()}
-        className={`mt-4 min-h-14 w-full rounded-2xl text-base font-semibold disabled:opacity-60 ${
+      <label
+        className={`mt-4 flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl px-4 ${
           item.takenToday ? 'bg-sage text-paper' : 'bg-mist text-ink'
-        }`}
+        } ${busy ? 'opacity-60' : ''}`}
       >
-        {item.takenToday ? 'Taken today' : 'Mark as taken'}
-      </button>
+        <input
+          type="checkbox"
+          className="h-5 w-5 shrink-0 accent-sage"
+          checked={item.takenToday}
+          disabled={busy}
+          aria-busy={busy}
+          onChange={(event) => void toggle(event.target.checked)}
+        />
+        <span className="text-base font-semibold">
+          {item.takenToday ? 'Checked off for today' : 'Check off for today'}
+        </span>
+      </label>
+
+      <DoseTimeField
+        id={`daily-time-${item.medication.id}`}
+        label="Time taken"
+        value={time}
+        disabled={busy || item.takenToday}
+        onChange={setTime}
+      />
 
       {item.todayDoses[0] ? (
         <p className="mt-3 text-sm text-mute">
           Logged at {timeLabel(item.todayDoses[0].takenAt)} by {item.todayDoses[0].loggedByName}
         </p>
       ) : (
-        <p className="mt-3 text-sm text-mute">Not logged yet today.</p>
+        <p className="mt-3 text-sm text-mute">Pick a time, then check it off.</p>
       )}
     </article>
   )
