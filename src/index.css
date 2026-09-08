@@ -5,6 +5,7 @@
 
 @theme {
   --font-sans: 'Nunito Variable', ui-rounded, 'Segoe UI', sans-serif;
+  --breakpoint-lg: 42rem;
   --color-canvas: #e7eef2;
   --color-paper: #f6f3ee;
   --color-mist: #d7e0e6;

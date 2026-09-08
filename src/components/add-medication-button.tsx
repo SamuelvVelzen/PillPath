@@ -30,7 +30,7 @@ export function AddMedicationButton({
     <button
       type="button"
       onClick={() => openNew(kind)}
-      className="min-h-14 w-full rounded-3xl bg-lilac font-semibold text-paper lg:w-auto lg:px-8"
+      className="min-h-14 w-full rounded-3xl bg-lilac font-semibold text-paper sm:w-auto sm:px-8"
     >
       {label}
     </button>

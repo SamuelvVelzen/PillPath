@@ -28,7 +28,7 @@ export function InstallHint() {
 
   return (
     <aside
-      className="fixed inset-x-0 bottom-[calc(5.4rem+env(safe-area-inset-bottom))] z-20 mx-auto w-[min(28rem,calc(100%-1.5rem))] rounded-3xl bg-paper px-4 py-3 shadow-sm shadow-mist lg:inset-auto lg:bottom-6 lg:left-[calc(16rem+1.5rem)] lg:mx-0 lg:w-80"
+      className="fixed bottom-[calc(5.4rem+env(safe-area-inset-bottom))] left-4 right-4 z-20 mx-auto max-w-lg rounded-3xl bg-paper px-4 py-3 shadow-sm shadow-mist lg:bottom-6 lg:left-[calc(16rem+1.5rem)] lg:right-auto lg:mx-0 lg:w-80"
       aria-label="Install PillPath"
     >
       <div className="flex items-start justify-between gap-3">

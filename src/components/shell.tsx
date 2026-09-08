@@ -19,7 +19,7 @@ export function Shell() {
   const pathname = useRouterState({ select: (state) => state.location.pathname })
 
   return (
-    <div className="mx-auto flex min-h-svh w-full max-w-md flex-col bg-canvas lg:max-w-none lg:flex-row">
+    <div className="flex min-h-svh w-full flex-col bg-canvas lg:flex-row">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-2xl focus:bg-paper focus:px-4 focus:py-2 focus:text-ink"
@@ -44,7 +44,7 @@ export function Shell() {
       <div className="flex min-h-svh min-w-0 flex-1 flex-col">
         <main
           id="main-content"
-          className="mx-auto w-full max-w-md flex-1 px-4 pb-[calc(6.25rem+env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] lg:max-w-5xl lg:px-8 lg:pb-10 lg:pt-8"
+          className="mx-auto w-full max-w-6xl flex-1 px-4 pb-[calc(6.25rem+env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] lg:px-8 lg:pb-10 lg:pt-8"
         >
           {error ? (
             <p role="alert" className="rounded-3xl bg-over-soft px-4 py-3 text-clay">
@@ -61,7 +61,7 @@ export function Shell() {
         </main>
 
         <nav
-          className="fixed inset-x-0 bottom-0 mx-auto max-w-md border-t border-line/80 bg-paper/95 px-2 pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))] backdrop-blur lg:hidden"
+          className="fixed inset-x-0 bottom-0 z-30 border-t border-line/80 bg-paper/95 px-2 pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))] backdrop-blur lg:hidden"
           aria-label="Main"
         >
           <NavList pathname={pathname} variant="tabs" />
