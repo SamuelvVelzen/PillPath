@@ -71,6 +71,20 @@ textarea {
   font: inherit;
 }
 
+button:not(:disabled),
+select:not(:disabled),
+summary,
+a,
+[role='button']:not([aria-disabled='true']) {
+  cursor: pointer;
+}
+
+button:disabled,
+select:disabled,
+[aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
 #root {
   min-height: 100svh;
 }
