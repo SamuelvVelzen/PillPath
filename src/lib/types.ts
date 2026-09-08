@@ -20,6 +20,9 @@ export type Medication = {
   previousDose: number | null
   trend: DoseTrend | null
   notes: string | null
+  cycleOnDays: number
+  cycleOffDays: number
+  cycleStart: string
   active: boolean
   sortOrder: number
 }
@@ -37,6 +40,7 @@ export type Dose = {
 
 export type DailyStatus = {
   medication: Medication
+  dueToday: boolean
   takenToday: boolean
   todayAmount: number
   todayDoses: Dose[]
@@ -79,4 +83,7 @@ export type MedicationInput = {
   previousDose?: number | null
   trend?: DoseTrend
   notes?: string
+  cycleOnDays?: number
+  cycleOffDays?: number
+  cycleStart?: string
 }

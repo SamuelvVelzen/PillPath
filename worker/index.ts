@@ -24,6 +24,9 @@ type MedicationRow = {
   previous_dose: number | null
   trend: Trend | null
   notes: string | null
+  cycle_on_days: number
+  cycle_off_days: number
+  cycle_start: string
   active: number
   sort_order: number
 }
@@ -106,8 +109,9 @@ app.post('/api/medications', async (c) => {
   await c.env.DB.prepare(
     `INSERT INTO medications (
       id, name, kind, unit, max_amount, window_hours, target_dose,
-      previous_dose, trend, notes, active, sort_order, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0, ?, ?)`,
+      previous_dose, trend, notes, cycle_on_days, cycle_off_days, cycle_start,
+      active, sort_order, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0, ?, ?)`,
   )
     .bind(
       id,
@@ -120,6 +124,9 @@ app.post('/api/medications', async (c) => {
       input.previous_dose,
       input.trend,
       input.notes,
+      input.cycle_on_days,
+      input.cycle_off_days,
+      input.cycle_start,
       now,
       now,
     )
@@ -171,7 +178,8 @@ app.patch('/api/medications/:id', async (c) => {
   await c.env.DB.prepare(
     `UPDATE medications SET
       name = ?, kind = ?, unit = ?, max_amount = ?, window_hours = ?,
-      target_dose = ?, previous_dose = ?, trend = ?, notes = ?, updated_at = ?
+      target_dose = ?, previous_dose = ?, trend = ?, notes = ?,
+      cycle_on_days = ?, cycle_off_days = ?, cycle_start = ?, updated_at = ?
     WHERE id = ?`,
   )
     .bind(
@@ -184,6 +192,9 @@ app.patch('/api/medications/:id', async (c) => {
       previous,
       input.trend,
       input.notes,
+      input.cycle_on_days,
+      input.cycle_off_days,
+      input.cycle_start,
       new Date().toISOString(),
       id,
     )
@@ -329,6 +340,9 @@ app.get('/api/today', async (c) => {
 
   for (const medication of medications.results) {
     if (medication.kind === 'daily') {
+      const dueToday = isScheduledDue(medication, new Date(from))
+      if (!dueToday) continue
+
       const doses = await c.env.DB.prepare(
         `SELECT * FROM doses
          WHERE medication_id = ? AND taken_at >= ? AND taken_at < ?
@@ -339,6 +353,7 @@ app.get('/api/today', async (c) => {
 
       daily.push({
         medication: mapMedication(medication),
+        dueToday,
         takenToday: doses.results.length > 0,
         todayAmount: sumAmounts(doses.results),
         todayDoses: doses.results.map((dose) => mapDose(dose, personMap)),
@@ -461,6 +476,9 @@ function mapMedication(row: MedicationRow) {
     previousDose: row.previous_dose,
     trend: row.trend,
     notes: row.notes,
+    cycleOnDays: row.cycle_on_days ?? 1,
+    cycleOffDays: row.cycle_off_days ?? 0,
+    cycleStart: row.cycle_start ?? localDateKey(new Date()),
     active: row.active === 1,
     sortOrder: row.sort_order,
   }
@@ -515,6 +533,9 @@ function parseMedicationInput(body: Record<string, unknown>) {
       previous_dose: null,
       trend: null,
       notes: optionalText(body.notes),
+      cycle_on_days: 1,
+      cycle_off_days: 0,
+      cycle_start: localDateKey(new Date()),
     }
   }
 
@@ -539,10 +560,71 @@ function parseMedicationInput(body: Record<string, unknown>) {
       body.previousDose == null ? null : Number(body.previousDose) || null,
     trend,
     notes: optionalText(body.notes),
+    cycle_on_days: parseCycleOnDays(body),
+    cycle_off_days: parseCycleOffDays(body),
+    cycle_start: parseCycleStart(body),
   }
 }
 
 function optionalText(value: unknown) {
   const text = String(value ?? '').trim()
   return text || null
+}
+
+function parseCycleOnDays(body: Record<string, unknown>) {
+  const value = Number(body.cycleOnDays ?? body.cycle_on_days ?? 1)
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new ApiError(400, 'Set how many days the medication is taken.')
+  }
+  return Math.round(value)
+}
+
+function parseCycleOffDays(body: Record<string, unknown>) {
+  const value = Number(body.cycleOffDays ?? body.cycle_off_days ?? 0)
+  if (!Number.isFinite(value) || value < 0) {
+    throw new ApiError(400, 'Break days cannot be negative.')
+  }
+  return Math.round(value)
+}
+
+function parseCycleStart(body: Record<string, unknown>) {
+  const raw = String(body.cycleStart ?? body.cycle_start ?? localDateKey(new Date())).trim()
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    throw new ApiError(400, 'Cycle start needs a date.')
+  }
+  return raw
+}
+
+function localDateKey(date: Date) {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function daysBetween(startKey: string, endKey: string) {
+  const start = parseLocalDateKey(startKey)
+  const end = parseLocalDateKey(endKey)
+  start.setHours(0, 0, 0, 0)
+  end.setHours(0, 0, 0, 0)
+  return Math.round((end.getTime() - start.getTime()) / 86_400_000)
+}
+
+function parseLocalDateKey(key: string) {
+  const [year, month, day] = key.split('-').map(Number)
+  return new Date(year, month - 1, day)
+}
+
+function isScheduledDue(medication: MedicationRow, date: Date) {
+  const cycleStart = medication.cycle_start ?? localDateKey(date)
+  const dayKey = localDateKey(date)
+  const daysSince = daysBetween(cycleStart, dayKey)
+  if (daysSince < 0) return false
+
+  const on = Math.max(1, medication.cycle_on_days ?? 1)
+  const off = Math.max(0, medication.cycle_off_days ?? 0)
+  if (off === 0) return true
+
+  const position = daysSince % (on + off)
+  return position < on
 }

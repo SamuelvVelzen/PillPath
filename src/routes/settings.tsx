@@ -8,6 +8,7 @@ import { useTheme } from '../context/theme-context.tsx'
 import { renamePerson } from '../lib/api.ts'
 import type { Medication } from '../lib/types.ts'
 import type { Theme } from '../lib/theme.ts'
+import { scheduleSummary } from '../lib/schedule.ts'
 
 export const Route = createFileRoute('/settings')({
   component: SettingsPage,
@@ -104,8 +105,8 @@ function SettingsPage() {
         onEdit={openEdit}
       />
       <MedicationGroup
-        title="Daily"
-        hint="Routine doses and whether they are moving."
+        title="Scheduled"
+        hint="Flexible on/off cycles, like 3 weeks on and 1 week off."
         items={medications.filter((medication) => medication.kind === 'daily')}
         onEdit={openEdit}
       />
@@ -184,7 +185,7 @@ function MedicationGroup({
                 <span className="text-sm text-mute">
                   {medication.kind === 'as_needed'
                     ? `max ${medication.maxAmount} / ${medication.windowHours}h`
-                    : `${medication.targetDose} ${medication.unit}`}
+                    : `${medication.targetDose} ${medication.unit} · ${scheduleSummary(medication.cycleOnDays, medication.cycleOffDays)}`}
                 </span>
               </button>
             </li>

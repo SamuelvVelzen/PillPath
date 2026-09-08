@@ -9,7 +9,7 @@ import { Onboarding } from './onboarding.tsx'
 export const tabs = [
   { to: '/', label: 'Today', icon: House, exact: true },
   { to: '/as-needed', label: 'As-needed', icon: Pill, exact: false },
-  { to: '/daily', label: 'Daily', icon: CalendarCheck, exact: false },
+  { to: '/daily', label: 'Scheduled', icon: CalendarCheck, exact: false },
   { to: '/month', label: 'Month', icon: CalendarDays, exact: false },
   { to: '/settings', label: 'Settings', icon: Settings2, exact: false },
 ] as const

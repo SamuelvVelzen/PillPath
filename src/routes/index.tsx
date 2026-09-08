@@ -38,11 +38,11 @@ function TodayPage() {
       <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-8">
       <section className="mb-8 lg:mb-0">
         <div className="mb-3 flex items-end justify-between gap-3">
-          <h2 className="text-lg font-semibold">Daily</h2>
+          <h2 className="text-lg font-semibold">Scheduled</h2>
           <div className="flex items-center gap-3">
             <AddMedicationButton kind="daily" label="Add" variant="inline" />
             <Link to="/daily" className="text-sm font-semibold text-lagoon">
-              Open daily
+              Open scheduled
             </Link>
           </div>
         </div>
@@ -54,16 +54,16 @@ function TodayPage() {
           </div>
         ) : (
           <Empty
-            text="No daily medication yet."
+            text="No scheduled medication due today."
             kind="daily"
-            action="Add daily medication"
+            action="Add scheduled medication"
           />
         )}
         {dailyLeft.length > 0 ? (
           <p className="mt-3 text-sm text-mute">
             {dailyLeft.length === 1
-              ? `${dailyLeft[0].medication.name} is still waiting.`
-              : `${dailyLeft.length} daily medications still waiting.`}
+              ? `${dailyLeft[0].medication.name} still needs checking off.`
+              : `${dailyLeft.length} scheduled medications still need checking off.`}
           </p>
         ) : null}
       </section>

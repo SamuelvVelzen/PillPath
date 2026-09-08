@@ -6,8 +6,10 @@ import {
   localDateKey,
   monthLabel,
   startPad,
+  timeLabel,
   weekdayLabels,
 } from '../lib/dates.ts'
+import { isScheduledDue } from '../lib/schedule.ts'
 import type { Dose, Medication } from '../lib/types.ts'
 
 type Props = {
@@ -20,7 +22,7 @@ type Props = {
 }
 
 type DayDoses = {
-  daily: Map<string, Dose[]>
+  scheduled: Map<string, Dose[]>
   asNeeded: Map<string, Dose[]>
 }
 
@@ -49,10 +51,10 @@ export function MonthCalendar({
       const key = localDateKey(dose.takenAt)
       let entry = days.get(key)
       if (!entry) {
-        entry = { daily: new Map(), asNeeded: new Map() }
+        entry = { scheduled: new Map(), asNeeded: new Map() }
         days.set(key, entry)
       }
-      const bucket = medication.kind === 'daily' ? entry.daily : entry.asNeeded
+      const bucket = medication.kind === 'daily' ? entry.scheduled : entry.asNeeded
       const list = bucket.get(dose.medicationId) ?? []
       list.push(dose)
       bucket.set(dose.medicationId, list)
@@ -63,7 +65,7 @@ export function MonthCalendar({
   const days = daysInMonth(year, monthIndex)
   const pad = startPad(year, monthIndex)
   const weekdays = weekdayLabels()
-  const dailyMeds = medications.filter((medication) => medication.kind === 'daily')
+  const scheduledMeds = medications.filter((medication) => medication.kind === 'daily')
   const asNeededMeds = medications.filter((medication) => medication.kind === 'as_needed')
 
   const selected = byDay.get(selectedKey)
@@ -120,7 +122,29 @@ export function MonthCalendar({
             const entry = byDay.get(key)
             const selectedDay = key === selectedKey
             const isToday = key === todayKey
-            const dailyCount = entry?.daily.size ?? 0
+            const date = new Date(`${key}T12:00:00`)
+            const dueCount = scheduledMeds.filter((medication) =>
+              isScheduledDue(
+                medication.cycleOnDays,
+                medication.cycleOffDays,
+                medication.cycleStart,
+                date,
+              ),
+            ).length
+            const takenCount =
+              scheduledMeds.filter((medication) => {
+                if (
+                  !isScheduledDue(
+                    medication.cycleOnDays,
+                    medication.cycleOffDays,
+                    medication.cycleStart,
+                    date,
+                  )
+                ) {
+                  return false
+                }
+                return (entry?.scheduled.get(medication.id)?.length ?? 0) > 0
+              }).length
             const asNeededCount = entry?.asNeeded.size ?? 0
             return (
               <button
@@ -129,7 +153,7 @@ export function MonthCalendar({
                 role="gridcell"
                 aria-selected={selectedDay}
                 aria-current={isToday ? 'date' : undefined}
-                aria-label={dayLabel(day, dailyCount, asNeededCount, dailyMeds.length)}
+                aria-label={dayLabel(day, dueCount, takenCount, asNeededCount)}
                 onClick={() => setSelectedKey(key)}
                 className={`flex min-h-14 flex-col items-center justify-center rounded-2xl px-1 text-sm font-semibold lg:min-h-20 ${
                   selectedDay
@@ -141,9 +165,17 @@ export function MonthCalendar({
               >
                 <span>{day}</span>
                 <span className="mt-1 flex h-2 items-center justify-center gap-0.5">
-                  {dailyCount > 0 ? (
+                  {dueCount > 0 ? (
                     <span
-                      className={`h-1.5 w-1.5 rounded-full ${selectedDay ? 'bg-paper' : 'bg-sage'}`}
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        takenCount >= dueCount
+                          ? selectedDay
+                            ? 'bg-paper'
+                            : 'bg-sage'
+                          : selectedDay
+                            ? 'bg-paper/70'
+                            : 'bg-amber'
+                      }`}
                     />
                   ) : null}
                   {asNeededCount > 0 ? (
@@ -160,23 +192,31 @@ export function MonthCalendar({
 
       <section className="mt-5 rounded-3xl bg-paper p-4" aria-live="polite">
         <h3 className="text-lg font-semibold">{selectedLabel}</h3>
-        {dailyMeds.length === 0 && asNeededMeds.length === 0 ? (
+        {scheduledMeds.length === 0 && asNeededMeds.length === 0 ? (
           <p className="mt-2 text-mute">No medications to show yet.</p>
         ) : (
           <div className="mt-4 space-y-4 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0">
             <DayGroup
-              title="Daily"
-              empty="No daily medication."
-              items={dailyMeds.map((medication) => {
-                const logged = selected?.daily.get(medication.id) ?? []
-                const amount = logged.reduce((total, dose) => total + dose.amount, 0)
+              title="Scheduled"
+              empty="No scheduled medication."
+              items={scheduledMeds.map((medication) => {
+                const due = isScheduledDue(
+                  medication.cycleOnDays,
+                  medication.cycleOffDays,
+                  medication.cycleStart,
+                  selectedDate,
+                )
+                const logged = selected?.scheduled.get(medication.id) ?? []
+                const dose = logged[0]
                 return {
                   id: medication.id,
                   name: medication.name,
-                  detail: logged.length
-                    ? `Taken · ${amountLabel(amount, medication.unit)}`
-                    : 'Not logged',
-                  active: logged.length > 0,
+                  detail: !due
+                    ? 'Break day'
+                    : logged.length
+                      ? `Checked off · ${timeLabel(dose.takenAt)}`
+                      : 'Due · not checked off',
+                  active: due && logged.length > 0,
                 }
               })}
             />
@@ -185,12 +225,12 @@ export function MonthCalendar({
               empty="No as-needed medication."
               items={asNeededMeds.map((medication) => {
                 const logged = selected?.asNeeded.get(medication.id) ?? []
-                const amount = logged.reduce((total, dose) => total + dose.amount, 0)
+                const amount = logged.reduce((total, entry) => total + entry.amount, 0)
                 return {
                   id: medication.id,
                   name: medication.name,
                   detail: logged.length
-                    ? amountLabel(amount, medication.unit)
+                    ? `${amountLabel(amount, medication.unit)} · ${timeLabel(logged[logged.length - 1].takenAt)}`
                     : 'Nothing logged',
                   active: logged.length > 0,
                 }
@@ -243,13 +283,13 @@ function DayGroup({
 
 function dayLabel(
   day: number,
-  dailyCount: number,
+  dueCount: number,
+  takenCount: number,
   asNeededCount: number,
-  dailyTotal: number,
 ) {
   const parts = [`${day}`]
-  if (dailyTotal > 0) {
-    parts.push(`${dailyCount} of ${dailyTotal} daily taken`)
+  if (dueCount > 0) {
+    parts.push(`${takenCount} of ${dueCount} scheduled checked off`)
   }
   if (asNeededCount > 0) {
     parts.push(`${asNeededCount} as-needed logged`)

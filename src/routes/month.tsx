@@ -56,7 +56,8 @@ function MonthPage() {
     <div>
       <PersonBar subtitle="Month" />
       <p className="mb-5 text-mute">
-        Sage dots are daily doses; lilac dots are as-needed.
+        Sage dots are scheduled doses; amber means due but not checked off. Lilac
+        dots are as-needed.
       </p>
 
       <div className="mb-5">

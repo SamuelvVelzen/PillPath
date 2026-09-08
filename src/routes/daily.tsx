@@ -17,14 +17,14 @@ function DailyPage() {
 
   return (
     <div>
-      <PersonBar subtitle="Daily medication" />
+      <PersonBar subtitle="Scheduled medication" />
       <p className="mb-5 text-mute">
-        Separate from as-needed limits. Use this to see whether a regular dose
-        is going up, coming down, or holding.
+        Only medications due today appear here. Check them off with a time. Use
+        the month view to see break weeks and past days.
       </p>
 
       <div className="mb-5">
-        <AddMedicationButton kind="daily" label="Add daily medication" />
+        <AddMedicationButton kind="daily" label="Add scheduled medication" />
       </div>
 
       {changing.length > 0 ? (
@@ -52,7 +52,7 @@ function DailyPage() {
         </div>
       ) : (
         <div className="rounded-3xl bg-paper px-4 py-5 text-mute">
-          <p>No daily medication yet. Add one here to start the routine list.</p>
+          <p>Nothing is due today. Scheduled medication on a break week will show up again when its cycle turns on.</p>
         </div>
       )}
     </div>

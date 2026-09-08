@@ -1,4 +1,6 @@
 import { type ReactNode } from 'react'
+import { localDateKey } from '../lib/dates.ts'
+import { scheduleSummary } from '../lib/schedule.ts'
 import type { DoseTrend, Medication, MedicationInput, MedicationKind } from '../lib/types.ts'
 
 export type MedDraft = {
@@ -10,6 +12,9 @@ export type MedDraft = {
   targetDose: string
   trend: DoseTrend
   notes: string
+  cycleOnDays: string
+  cycleOffDays: string
+  cycleStart: string
 }
 
 export function draftFromMedication(
@@ -25,6 +30,9 @@ export function draftFromMedication(
     targetDose: medication?.targetDose != null ? String(medication.targetDose) : '1',
     trend: medication?.trend ?? 'stable',
     notes: medication?.notes ?? '',
+    cycleOnDays: medication?.cycleOnDays != null ? String(medication.cycleOnDays) : '1',
+    cycleOffDays: medication?.cycleOffDays != null ? String(medication.cycleOffDays) : '0',
+    cycleStart: medication?.cycleStart ?? localDateKey(new Date()),
   }
 }
 
@@ -45,8 +53,17 @@ export function draftToInput(draft: MedDraft): MedicationInput {
     targetDose: Number(draft.targetDose),
     trend: draft.trend,
     notes: draft.notes,
+    cycleOnDays: Number(draft.cycleOnDays),
+    cycleOffDays: Number(draft.cycleOffDays),
+    cycleStart: draft.cycleStart,
   }
 }
+
+const schedulePresets = [
+  { id: 'daily', label: 'Every day', on: '1', off: '0' },
+  { id: '1w-1w', label: '1 week on, 1 week off', on: '7', off: '7' },
+  { id: '3w-1w', label: '3 weeks on, 1 week off', on: '21', off: '7' },
+] as const
 
 export function MedEditor({
   title,
@@ -71,6 +88,12 @@ export function MedEditor({
   error: string | null
   bare?: boolean
 }) {
+  const activePreset =
+    schedulePresets.find(
+      (preset) =>
+        preset.on === draft.cycleOnDays && preset.off === draft.cycleOffDays,
+    )?.id ?? 'custom'
+
   return (
     <section className={bare ? undefined : 'rounded-3xl bg-paper p-4'}>
       <h2 id={titleId} className="text-xl font-semibold">
@@ -96,7 +119,7 @@ export function MedEditor({
           selected={draft.kind === 'daily'}
           onClick={() => onChange({ ...draft, kind: 'daily' })}
         >
-          Daily
+          Scheduled
         </KindButton>
       </div>
 
@@ -129,7 +152,7 @@ export function MedEditor({
         </>
       ) : (
         <>
-          <Field label="Current daily dose">
+          <Field label="Dose each time">
             <input
               className="field"
               inputMode="decimal"
@@ -137,6 +160,72 @@ export function MedEditor({
               onChange={(event) => onChange({ ...draft, targetDose: event.target.value })}
             />
           </Field>
+
+          <p className="mt-4 text-sm font-semibold text-mute" id="schedule-preset-label">
+            When is it taken?
+          </p>
+          <div
+            className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2"
+            role="group"
+            aria-labelledby="schedule-preset-label"
+          >
+            {schedulePresets.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                aria-pressed={activePreset === preset.id}
+                onClick={() =>
+                  onChange({
+                    ...draft,
+                    cycleOnDays: preset.on,
+                    cycleOffDays: preset.off,
+                  })
+                }
+                className={`min-h-12 rounded-2xl px-3 text-sm font-semibold ${
+                  activePreset === preset.id ? 'bg-lagoon text-paper' : 'bg-mist text-ink'
+                }`}
+              >
+                {preset.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <Field label="Days on">
+              <input
+                className="field"
+                inputMode="numeric"
+                value={draft.cycleOnDays}
+                onChange={(event) =>
+                  onChange({ ...draft, cycleOnDays: event.target.value })
+                }
+              />
+            </Field>
+            <Field label="Days off">
+              <input
+                className="field"
+                inputMode="numeric"
+                value={draft.cycleOffDays}
+                onChange={(event) =>
+                  onChange({ ...draft, cycleOffDays: event.target.value })
+                }
+              />
+            </Field>
+          </div>
+
+          <Field label="Cycle starts">
+            <input
+              className="field"
+              type="date"
+              value={draft.cycleStart}
+              onChange={(event) => onChange({ ...draft, cycleStart: event.target.value })}
+            />
+          </Field>
+
+          <p className="mt-2 text-sm text-mute">
+            {scheduleSummary(Number(draft.cycleOnDays), Number(draft.cycleOffDays))}
+          </p>
+
           <p className="mt-4 text-sm font-semibold text-mute" id="dose-trend-label">
             Is the dose moving?
           </p>

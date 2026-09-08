@@ -34,8 +34,22 @@ const statements = [
   `CREATE INDEX IF NOT EXISTS idx_doses_taken ON doses(taken_at)`,
 ]
 
+const scheduleColumns = [
+  `ALTER TABLE medications ADD COLUMN cycle_on_days INTEGER NOT NULL DEFAULT 1`,
+  `ALTER TABLE medications ADD COLUMN cycle_off_days INTEGER NOT NULL DEFAULT 0`,
+  `ALTER TABLE medications ADD COLUMN cycle_start TEXT NOT NULL DEFAULT (date('now'))`,
+]
+
 export async function ensureSchema(db: D1Database): Promise<void> {
   await db.batch(statements.map((sql) => db.prepare(sql)))
+
+  for (const sql of scheduleColumns) {
+    try {
+      await db.prepare(sql).run()
+    } catch {
+      // Column already exists.
+    }
+  }
 
   const existing = await db
     .prepare('SELECT COUNT(*) AS count FROM people')
