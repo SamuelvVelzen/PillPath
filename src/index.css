@@ -1,0 +1,68 @@
+@import '@fontsource-variable/nunito';
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Nunito Variable', ui-rounded, 'Segoe UI', sans-serif;
+  --color-canvas: #e7eef2;
+  --color-paper: #f6f3ee;
+  --color-mist: #d7e0e6;
+  --color-ink: #3f4854;
+  --color-mute: #66717d;
+  --color-line: #cfd6dc;
+  --color-lagoon: #6e8896;
+  --color-lilac: #8d84a3;
+  --color-sage: #6f8b7c;
+  --color-amber: #b8924f;
+  --color-clay: #a56b64;
+  --color-ok-soft: #e4eee8;
+  --color-caution-soft: #f4ead4;
+  --color-warning-soft: #f3e0d6;
+  --color-over-soft: #f0d7d4;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+#root {
+  min-height: 100svh;
+}
+
+::selection {
+  background: #d5dde3;
+}
+
+.field {
+  box-sizing: border-box;
+  min-height: 3.5rem;
+  width: 100%;
+  border: 0;
+  border-radius: 1rem;
+  background: var(--color-canvas);
+  padding: 0 1rem;
+  color: var(--color-ink);
+  outline: none;
+}
+
+.field:focus {
+  box-shadow: 0 0 0 2px var(--color-line);
+}
