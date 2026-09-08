@@ -87,7 +87,7 @@ function SettingsPage() {
       <section className="mb-6 rounded-3xl bg-paper p-4 lg:mb-0">
         <h2 className="text-lg font-semibold">Appearance</h2>
         <p className="mt-1 text-sm text-mute">
-          Dark mode follows your phone unless you pick one here.
+          Dark is the default. Switch to light, or follow the system.
         </p>
         <ThemePicker />
       </section>

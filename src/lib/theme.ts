@@ -7,7 +7,7 @@ export const DARK_THEME_COLOR = '#12171c'
 export function readTheme(): Theme {
   const value = localStorage.getItem(THEME_KEY)
   if (value === 'light' || value === 'dark' || value === 'system') return value
-  return 'system'
+  return 'dark'
 }
 
 export function resolvedTheme(theme: Theme): 'light' | 'dark' {
