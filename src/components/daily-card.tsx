@@ -30,7 +30,7 @@ export function DailyCard({ item }: { item: DailyStatus }) {
   }
 
   return (
-    <article className="rounded-3xl bg-paper p-4">
+    <article className="h-full rounded-3xl bg-paper p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="text-xl font-semibold">{item.medication.name}</h2>

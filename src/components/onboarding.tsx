@@ -37,8 +37,8 @@ export function Onboarding() {
   }
 
   return (
-    <div className="fixed inset-0 z-40 bg-canvas/95 px-4 py-10">
-      <div className="mx-auto flex min-h-full max-w-md flex-col justify-center">
+    <div className="fixed inset-0 z-40 bg-canvas/95 px-4 py-10 lg:px-8">
+      <div className="mx-auto flex min-h-full w-full max-w-md flex-col justify-center lg:max-w-lg">
         <p className="text-sm font-semibold tracking-[0.16em] text-lagoon uppercase">
           Welcome
         </p>

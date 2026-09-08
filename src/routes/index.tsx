@@ -32,7 +32,8 @@ function TodayPage() {
         </p>
       ))}
 
-      <section className="mb-8">
+      <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-8">
+      <section className="mb-8 lg:mb-0">
         <div className="mb-3 flex items-end justify-between">
           <h2 className="text-lg font-semibold">Daily</h2>
           <Link to="/daily" className="text-sm font-semibold text-lagoon">
@@ -82,6 +83,7 @@ function TodayPage() {
           />
         )}
       </section>
+      </div>
     </div>
   )
 }

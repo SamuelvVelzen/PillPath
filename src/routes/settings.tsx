@@ -105,7 +105,8 @@ function SettingsPage() {
     <div>
       <PersonBar subtitle="Settings" />
 
-      <section className="mb-6 rounded-3xl bg-paper p-4">
+      <div className="lg:mb-6 lg:grid lg:grid-cols-2 lg:gap-6">
+      <section className="mb-6 rounded-3xl bg-paper p-4 lg:mb-0">
         <h2 className="text-lg font-semibold">Household names</h2>
         <p className="mt-1 text-sm text-mute">
           You can both open the same app, fill things in, and see the same result.
@@ -127,13 +128,14 @@ function SettingsPage() {
         {nameError ? <p className="mt-2 text-sm text-clay">{nameError}</p> : null}
       </section>
 
-      <section className="mb-6 rounded-3xl bg-paper p-4">
+      <section className="mb-6 rounded-3xl bg-paper p-4 lg:mb-0">
         <h2 className="text-lg font-semibold">Appearance</h2>
         <p className="mt-1 text-sm text-mute">
           Dark mode follows your phone unless you pick one here.
         </p>
         <ThemePicker />
       </section>
+      </div>
 
       {editor ? (
         <div className="mb-6">
@@ -172,10 +174,11 @@ function SettingsPage() {
       />
 
       <section className="mt-6 rounded-3xl bg-paper p-4 text-sm text-mute">
-        <h2 className="text-base font-semibold text-ink">On your phone</h2>
+        <h2 className="text-base font-semibold text-ink">On this device</h2>
         <p className="mt-2">
-          Install PillPath from the browser menu, or use Share → Add to Home
-          Screen on iPhone. Weather and flare-up tracking can come later.
+          On a phone, install PillPath from the browser menu, or use Share → Add
+          to Home Screen on iPhone. On a computer, keep the tab or install it as
+          an app from the browser. Weather and flare-up tracking can come later.
         </p>
       </section>
     </div>
@@ -229,7 +232,7 @@ function MedicationGroup({
       {items.length === 0 ? (
         <p className="rounded-3xl bg-paper px-4 py-4 text-mute">None yet.</p>
       ) : (
-        <ul className="space-y-2">
+        <ul className="space-y-2 lg:grid lg:grid-cols-2 lg:gap-2 lg:space-y-0">
           {items.map((medication) => (
             <li key={medication.id}>
               <button

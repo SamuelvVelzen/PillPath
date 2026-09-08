@@ -7,7 +7,7 @@ const labels = {
   system: 'System theme',
 } as const
 
-export function ThemeToggle() {
+export function ThemeToggle({ className = '' }: { className?: string }) {
   const { theme, cycleTheme } = useTheme()
   const Icon = theme === 'dark' ? Moon : theme === 'light' ? Sun : Monitor
 
@@ -15,7 +15,7 @@ export function ThemeToggle() {
     <button
       type="button"
       onClick={cycleTheme}
-      className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-2xl bg-paper text-ink"
+      className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-2xl bg-paper text-ink lg:bg-canvas ${className}`.trim()}
       aria-label={`${labels[theme]}. Switch theme`}
       title={`${labels[theme]}. Click to switch`}
     >
