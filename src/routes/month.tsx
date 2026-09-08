@@ -1,7 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
+import { AddMedicationButton } from '../components/add-medication-button.tsx'
 import { MonthCalendar } from '../components/month-calendar.tsx'
 import { PersonBar } from '../components/person-bar.tsx'
+import { useApp } from '../context/app-context.tsx'
 import { fetchMonth } from '../lib/api.ts'
 import { localMonthRange } from '../lib/dates.ts'
 import type { MonthPayload } from '../lib/types.ts'
@@ -11,6 +13,7 @@ export const Route = createFileRoute('/month')({
 })
 
 function MonthPage() {
+  const { today } = useApp()
   const now = new Date()
   const [cursor, setCursor] = useState({
     year: now.getFullYear(),
@@ -40,7 +43,7 @@ function MonthPage() {
     return () => {
       cancelled = true
     }
-  }, [cursor.monthIndex, cursor.year])
+  }, [cursor.monthIndex, cursor.year, today])
 
   function shift(delta: number) {
     setCursor((current) => {
@@ -55,6 +58,10 @@ function MonthPage() {
       <p className="mb-5 text-mute">
         One shared month. Sage dots are daily doses; lilac dots are as-needed.
       </p>
+
+      <div className="mb-5">
+        <AddMedicationButton />
+      </div>
 
       {error ? (
         <p role="alert" className="mb-4 rounded-3xl bg-over-soft px-4 py-3 text-clay">

@@ -1,20 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useMemo, useState } from 'react'
-import {
-  draftFromMedication,
-  MedEditor,
-  type MedDraft,
-} from '../components/med-editor.tsx'
+import { AddMedicationButton } from '../components/add-medication-button.tsx'
 import { PersonBar } from '../components/person-bar.tsx'
 import { useApp } from '../context/app-context.tsx'
+import { useMedDialog } from '../context/med-dialog-context.tsx'
 import { useTheme } from '../context/theme-context.tsx'
-import {
-  createMedication,
-  deleteMedication,
-  renamePerson,
-  updateMedication,
-} from '../lib/api.ts'
-import type { Medication, MedicationInput } from '../lib/types.ts'
+import { renamePerson } from '../lib/api.ts'
+import type { Medication } from '../lib/types.ts'
 import type { Theme } from '../lib/theme.ts'
 
 export const Route = createFileRoute('/settings')({
@@ -23,6 +15,7 @@ export const Route = createFileRoute('/settings')({
 
 function SettingsPage() {
   const { today, people, refresh } = useApp()
+  const { openEdit } = useMedDialog()
   const [helperName, setHelperName] = useState(
     () => people.find((person) => person.role === 'helper')?.name ?? 'Samuel',
   )
@@ -30,30 +23,12 @@ function SettingsPage() {
     () => people.find((person) => person.role === 'primary')?.name ?? '',
   )
   const [nameError, setNameError] = useState<string | null>(null)
-  const [editor, setEditor] = useState<'new' | string | null>(null)
-  const [draft, setDraft] = useState<MedDraft>(() => draftFromMedication())
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const medications = useMemo(() => {
     const daily = today?.daily.map((item) => item.medication) ?? []
     const asNeeded = today?.asNeeded.map((item) => item.medication) ?? []
     return [...asNeeded, ...daily]
   }, [today])
-
-  const editing = medications.find((medication) => medication.id === editor) ?? null
-
-  function openNew() {
-    setDraft(draftFromMedication())
-    setEditor('new')
-    setError(null)
-  }
-
-  function openEdit(medication: Medication) {
-    setDraft(draftFromMedication(medication))
-    setEditor(medication.id)
-    setError(null)
-  }
 
   async function saveNames() {
     const helper = people.find((person) => person.role === 'helper')
@@ -67,38 +42,6 @@ function SettingsPage() {
     await renamePerson(helper.id, helperName.trim() || 'Samuel')
     await renamePerson(primary.id, primaryName.trim())
     await refresh()
-  }
-
-  async function saveMedication() {
-    setBusy(true)
-    setError(null)
-    try {
-      const input = toInput(draft)
-      if (editor === 'new') {
-        await createMedication(input)
-      } else if (editor) {
-        await updateMedication(editor, input)
-      }
-      await refresh()
-      setEditor(null)
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Could not save.')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  async function removeMedication() {
-    if (!editor || editor === 'new') return
-    if (!window.confirm('Remove this medication and its logs?')) return
-    setBusy(true)
-    try {
-      await deleteMedication(editor)
-      await refresh()
-      setEditor(null)
-    } finally {
-      setBusy(false)
-    }
   }
 
   return (
@@ -150,28 +93,9 @@ function SettingsPage() {
       </section>
       </div>
 
-      {editor ? (
-        <div className="mb-6">
-          <MedEditor
-            title={editor === 'new' ? 'New medication' : `Edit ${editing?.name ?? ''}`}
-            draft={draft}
-            onChange={setDraft}
-            onSave={() => void saveMedication()}
-            onCancel={() => setEditor(null)}
-            onDelete={editor === 'new' ? undefined : () => void removeMedication()}
-            busy={busy}
-            error={error}
-          />
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={openNew}
-          className="mb-6 min-h-14 w-full rounded-3xl bg-lilac font-semibold text-paper"
-        >
-          Add medication
-        </button>
-      )}
+      <div className="mb-6">
+        <AddMedicationButton />
+      </div>
 
       <MedicationGroup
         title="As-needed"
@@ -269,24 +193,4 @@ function MedicationGroup({
       )}
     </section>
   )
-}
-
-function toInput(draft: MedDraft): MedicationInput {
-  if (draft.kind === 'as_needed') {
-    return {
-      name: draft.name,
-      kind: 'as_needed',
-      unit: draft.unit,
-      maxAmount: Number(draft.maxAmount),
-      windowHours: Number(draft.windowHours),
-    }
-  }
-  return {
-    name: draft.name,
-    kind: 'daily',
-    unit: draft.unit,
-    targetDose: Number(draft.targetDose),
-    trend: draft.trend,
-    notes: draft.notes,
-  }
 }

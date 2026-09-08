@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
+import { AddMedicationButton } from '../components/add-medication-button.tsx'
 import { DailyCard } from '../components/daily-card.tsx'
 import { PersonBar } from '../components/person-bar.tsx'
 import { useApp } from '../context/app-context.tsx'
@@ -21,6 +22,10 @@ function DailyPage() {
         Separate from as-needed limits. Use this to see whether a regular dose
         is going up, coming down, or holding.
       </p>
+
+      <div className="mb-5">
+        <AddMedicationButton kind="daily" label="Add daily medication" />
+      </div>
 
       {changing.length > 0 ? (
         <div className="mb-4 rounded-3xl bg-mist px-4 py-3 text-ink">
@@ -47,10 +52,7 @@ function DailyPage() {
         </div>
       ) : (
         <div className="rounded-3xl bg-paper px-4 py-5 text-mute">
-          <p>No daily medication yet.</p>
-          <Link to="/settings" className="mt-3 inline-block font-semibold text-lagoon">
-            Add daily medication
-          </Link>
+          <p>No daily medication yet. Add one here to start the routine list.</p>
         </div>
       )}
     </div>

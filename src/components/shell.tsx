@@ -3,6 +3,7 @@ import { CalendarCheck, CalendarDays, House, Pill, Settings2 } from 'lucide-reac
 import { useApp } from '../context/app-context.tsx'
 import { ThemeToggle } from './theme-toggle.tsx'
 import { InstallHint } from './install-hint.tsx'
+import { MedDialog } from './med-dialog.tsx'
 import { Onboarding } from './onboarding.tsx'
 
 export const tabs = [
@@ -68,6 +69,7 @@ export function Shell() {
       </div>
 
       <InstallHint />
+      <MedDialog />
       {needsOnboarding ? <Onboarding /> : null}
     </div>
   )

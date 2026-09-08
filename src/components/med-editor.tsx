@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react'
-import type { DoseTrend, Medication, MedicationKind } from '../lib/types.ts'
+import type { DoseTrend, Medication, MedicationInput, MedicationKind } from '../lib/types.ts'
 
 export type MedDraft = {
   name: string
@@ -12,10 +12,13 @@ export type MedDraft = {
   notes: string
 }
 
-export function draftFromMedication(medication?: Medication | null): MedDraft {
+export function draftFromMedication(
+  medication?: Medication | null,
+  kind?: MedicationKind,
+): MedDraft {
   return {
     name: medication?.name ?? '',
-    kind: medication?.kind ?? 'as_needed',
+    kind: medication?.kind ?? kind ?? 'as_needed',
     unit: medication?.unit ?? 'pills',
     maxAmount: medication?.maxAmount != null ? String(medication.maxAmount) : '8',
     windowHours: medication?.windowHours != null ? String(medication.windowHours) : '24',
@@ -25,8 +28,29 @@ export function draftFromMedication(medication?: Medication | null): MedDraft {
   }
 }
 
+export function draftToInput(draft: MedDraft): MedicationInput {
+  if (draft.kind === 'as_needed') {
+    return {
+      name: draft.name,
+      kind: 'as_needed',
+      unit: draft.unit,
+      maxAmount: Number(draft.maxAmount),
+      windowHours: Number(draft.windowHours),
+    }
+  }
+  return {
+    name: draft.name,
+    kind: 'daily',
+    unit: draft.unit,
+    targetDose: Number(draft.targetDose),
+    trend: draft.trend,
+    notes: draft.notes,
+  }
+}
+
 export function MedEditor({
   title,
+  titleId = 'med-editor-title',
   draft,
   onChange,
   onSave,
@@ -34,8 +58,10 @@ export function MedEditor({
   onDelete,
   busy,
   error,
+  bare = false,
 }: {
   title: string
+  titleId?: string
   draft: MedDraft
   onChange: (draft: MedDraft) => void
   onSave: () => void
@@ -43,10 +69,13 @@ export function MedEditor({
   onDelete?: () => void
   busy: boolean
   error: string | null
+  bare?: boolean
 }) {
   return (
-    <section className="rounded-3xl bg-paper p-4">
-      <h2 className="text-xl font-semibold">{title}</h2>
+    <section className={bare ? undefined : 'rounded-3xl bg-paper p-4'}>
+      <h2 id={titleId} className="text-xl font-semibold">
+        {title}
+      </h2>
 
       <Field label="Name">
         <input

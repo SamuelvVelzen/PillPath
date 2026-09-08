@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { AddMedicationButton } from '../components/add-medication-button.tsx'
 import { AsNeededCard } from '../components/as-needed-card.tsx'
 import { DailyCard } from '../components/daily-card.tsx'
 import { PersonBar } from '../components/person-bar.tsx'
 import { useApp } from '../context/app-context.tsx'
 import { greetingFor, localDayRange } from '../lib/dates.ts'
+import type { MedicationKind } from '../lib/types.ts'
 
 export const Route = createFileRoute('/')({
   component: TodayPage,
@@ -35,11 +37,14 @@ function TodayPage() {
 
       <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-8">
       <section className="mb-8 lg:mb-0">
-        <div className="mb-3 flex items-end justify-between">
+        <div className="mb-3 flex items-end justify-between gap-3">
           <h2 className="text-lg font-semibold">Daily</h2>
-          <Link to="/daily" className="text-sm font-semibold text-lagoon">
-            Open daily
-          </Link>
+          <div className="flex items-center gap-3">
+            <AddMedicationButton kind="daily" label="Add" variant="inline" />
+            <Link to="/daily" className="text-sm font-semibold text-lagoon">
+              Open daily
+            </Link>
+          </div>
         </div>
         {today?.daily.length ? (
           <div className="space-y-3">
@@ -50,8 +55,8 @@ function TodayPage() {
         ) : (
           <Empty
             text="No daily medication yet."
-            to="/settings"
-            action="Add one in Settings"
+            kind="daily"
+            action="Add daily medication"
           />
         )}
         {dailyLeft.length > 0 ? (
@@ -64,11 +69,14 @@ function TodayPage() {
       </section>
 
       <section>
-        <div className="mb-3 flex items-end justify-between">
+        <div className="mb-3 flex items-end justify-between gap-3">
           <h2 className="text-lg font-semibold">As-needed</h2>
-          <Link to="/as-needed" className="text-sm font-semibold text-lagoon">
-            Open limits
-          </Link>
+          <div className="flex items-center gap-3">
+            <AddMedicationButton kind="as_needed" label="Add" variant="inline" />
+            <Link to="/as-needed" className="text-sm font-semibold text-lagoon">
+              Open limits
+            </Link>
+          </div>
         </div>
         {today?.asNeeded.length ? (
           <div className="space-y-3">
@@ -79,7 +87,7 @@ function TodayPage() {
         ) : (
           <Empty
             text="No as-needed medication yet. This is the list with limits, like 8 pills in 24 hours."
-            to="/settings"
+            kind="as_needed"
             action="Add a limit"
           />
         )}
@@ -89,13 +97,21 @@ function TodayPage() {
   )
 }
 
-function Empty({ text, to, action }: { text: string; to: '/settings'; action: string }) {
+function Empty({
+  text,
+  kind,
+  action,
+}: {
+  text: string
+  kind: MedicationKind
+  action: string
+}) {
   return (
     <div className="rounded-3xl bg-paper px-4 py-5 text-mute">
       <p>{text}</p>
-      <Link to={to} className="mt-3 inline-block font-semibold text-lagoon">
-        {action}
-      </Link>
+      <div className="mt-3">
+        <AddMedicationButton kind={kind} label={action} variant="inline" />
+      </div>
     </div>
   )
 }
