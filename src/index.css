@@ -1,6 +1,8 @@
 @import '@fontsource-variable/nunito';
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: 'Nunito Variable', ui-rounded, 'Segoe UI', sans-serif;
   --color-canvas: #e7eef2;
@@ -20,10 +22,36 @@
   --color-over-soft: #f0d7d4;
 }
 
+html.dark {
+  --color-canvas: #12171c;
+  --color-paper: #1c232b;
+  --color-mist: #2a333c;
+  --color-ink: #e4e8ed;
+  --color-mute: #9aa5b1;
+  --color-line: #333c46;
+  --color-lagoon: #8aa3b0;
+  --color-lilac: #a89fc0;
+  --color-sage: #8eaa9b;
+  --color-amber: #d4b06a;
+  --color-clay: #c48982;
+  --color-ok-soft: #1e2e26;
+  --color-caution-soft: #322a1a;
+  --color-warning-soft: #32241e;
+  --color-over-soft: #2f1e1c;
+}
+
 html,
 body,
 #root {
   min-height: 100%;
+}
+
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 
 body {
@@ -49,6 +77,10 @@ textarea {
 
 ::selection {
   background: #d5dde3;
+}
+
+html.dark ::selection {
+  background: #3a4652;
 }
 
 .field {

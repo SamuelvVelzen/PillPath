@@ -7,6 +7,7 @@ import {
 } from '../components/med-editor.tsx'
 import { PersonBar } from '../components/person-bar.tsx'
 import { useApp } from '../context/app-context.tsx'
+import { useTheme } from '../context/theme-context.tsx'
 import {
   createMedication,
   deleteMedication,
@@ -14,6 +15,7 @@ import {
   updateMedication,
 } from '../lib/api.ts'
 import type { Medication, MedicationInput } from '../lib/types.ts'
+import type { Theme } from '../lib/theme.ts'
 
 export const Route = createFileRoute('/settings')({
   component: SettingsPage,
@@ -125,6 +127,14 @@ function SettingsPage() {
         {nameError ? <p className="mt-2 text-sm text-clay">{nameError}</p> : null}
       </section>
 
+      <section className="mb-6 rounded-3xl bg-paper p-4">
+        <h2 className="text-lg font-semibold">Appearance</h2>
+        <p className="mt-1 text-sm text-mute">
+          Dark mode follows your phone unless you pick one here.
+        </p>
+        <ThemePicker />
+      </section>
+
       {editor ? (
         <div className="mb-6">
           <MedEditor
@@ -168,6 +178,35 @@ function SettingsPage() {
           Screen on iPhone. Weather and flare-up tracking can come later.
         </p>
       </section>
+    </div>
+  )
+}
+
+function ThemePicker() {
+  const { theme, setTheme } = useTheme()
+  const options: Array<{ id: Theme; label: string }> = [
+    { id: 'system', label: 'System' },
+    { id: 'light', label: 'Light' },
+    { id: 'dark', label: 'Dark' },
+  ]
+
+  return (
+    <div className="mt-4 grid grid-cols-3 gap-2">
+      {options.map((option) => {
+        const selected = theme === option.id
+        return (
+          <button
+            key={option.id}
+            type="button"
+            onClick={() => setTheme(option.id)}
+            className={`min-h-12 rounded-2xl text-sm font-semibold ${
+              selected ? 'bg-lagoon text-paper' : 'bg-mist text-ink'
+            }`}
+          >
+            {option.label}
+          </button>
+        )
+      })}
     </div>
   )
 }

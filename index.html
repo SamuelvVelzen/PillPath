@@ -12,6 +12,27 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <script>
+      try {
+        var stored = localStorage.getItem('pillpath.theme')
+        var dark =
+          stored === 'dark' ||
+          (stored !== 'light' &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches)
+        if (dark) {
+          document.documentElement.classList.add('dark')
+          document.documentElement.style.colorScheme = 'dark'
+          var themeColor = document.querySelector('meta[name="theme-color"]')
+          if (themeColor) themeColor.setAttribute('content', '#12171c')
+          var statusBar = document.querySelector(
+            'meta[name="apple-mobile-web-app-status-bar-style"]',
+          )
+          if (statusBar) statusBar.setAttribute('content', 'black-translucent')
+        } else {
+          document.documentElement.style.colorScheme = 'light'
+        }
+      } catch (error) {}
+    </script>
     <meta name="apple-mobile-web-app-title" content="PillPath" />
     <meta
       name="description"

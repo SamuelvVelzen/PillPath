@@ -1,5 +1,6 @@
 import { createRootRoute } from '@tanstack/react-router'
 import { AppProvider } from '../context/app-context.tsx'
+import { ThemeProvider } from '../context/theme-context.tsx'
 import { Shell } from '../components/shell.tsx'
 
 export const Route = createRootRoute({
@@ -8,8 +9,10 @@ export const Route = createRootRoute({
 
 function RootComponent() {
   return (
-    <AppProvider>
-      <Shell />
-    </AppProvider>
+    <ThemeProvider>
+      <AppProvider>
+        <Shell />
+      </AppProvider>
+    </ThemeProvider>
   )
 }

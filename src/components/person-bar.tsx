@@ -1,3 +1,4 @@
+import { ThemeToggle } from './theme-toggle.tsx'
 import { useApp } from '../context/app-context.tsx'
 
 export function PersonBar({ subtitle }: { subtitle: string }) {
@@ -5,9 +6,12 @@ export function PersonBar({ subtitle }: { subtitle: string }) {
 
   return (
     <header className="mb-6">
-      <p className="text-sm font-semibold tracking-[0.16em] text-lagoon uppercase">
-        PillPath
-      </p>
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-sm font-semibold tracking-[0.16em] text-lagoon uppercase">
+          PillPath
+        </p>
+        <ThemeToggle />
+      </div>
       <h1 className="mt-1 text-2xl font-semibold text-ink">{subtitle}</h1>
       <p className="mt-1 text-mute">
         Logging as {person?.name ?? 'you'}. Both of you share the same list.
