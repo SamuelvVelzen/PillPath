@@ -37,6 +37,10 @@ export function fetchPeople() {
   return request<{ people: Person[] }>('/api/people')
 }
 
+export function fetchMedications() {
+  return request<{ medications: Medication[] }>('/api/medications')
+}
+
 export function renamePerson(id: string, name: string) {
   return request<{ ok: true }>(`/api/people/${id}`, {
     method: 'PATCH',

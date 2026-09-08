@@ -1,21 +1,22 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { AddMedicationButton } from '../components/add-medication-button.tsx'
 import { PersonBar } from '../components/person-bar.tsx'
+import { ScheduleBadge } from '../components/schedule-display.tsx'
 import { useApp } from '../context/app-context.tsx'
 import { useMedDialog } from '../context/med-dialog-context.tsx'
 import { useTheme } from '../context/theme-context.tsx'
 import { renamePerson } from '../lib/api.ts'
-import type { Medication } from '../lib/types.ts'
 import type { Theme } from '../lib/theme.ts'
-import { ScheduleBadge } from '../components/schedule-display.tsx'
+import type { Medication } from '../lib/types.ts'
+import { limitSummary } from '../lib/window.ts'
 
 export const Route = createFileRoute('/settings')({
   component: SettingsPage,
 })
 
 function SettingsPage() {
-  const { today, people, refresh } = useApp()
+  const { medications, people, refresh } = useApp()
   const { openEdit } = useMedDialog()
   const [helperName, setHelperName] = useState(
     () => people.find((person) => person.role === 'helper')?.name ?? 'Samuel',
@@ -25,14 +26,7 @@ function SettingsPage() {
   )
   const [nameError, setNameError] = useState<string | null>(null)
 
-  const medications = useMemo(() => {
-    const daily = today?.daily.map((item) => item.medication) ?? []
-    const asNeeded = today?.asNeeded.map((item) => item.medication) ?? []
-    return [...asNeeded, ...daily]
-  }, [today])
-
-  async function saveNames() {
-    const helper = people.find((person) => person.role === 'helper')
+  async function saveNames() {    const helper = people.find((person) => person.role === 'helper')
     const primary = people.find((person) => person.role === 'primary')
     if (!helper || !primary) return
     if (!primaryName.trim()) {
@@ -100,7 +94,7 @@ function SettingsPage() {
 
       <MedicationGroup
         title="As-needed"
-        hint="Limits and warnings live here."
+        hint="Pain, fever, or flare-up meds with hourly, daily, weekly, or monthly limits."
         items={medications.filter((medication) => medication.kind === 'as_needed')}
         onEdit={openEdit}
       />
@@ -184,7 +178,11 @@ function MedicationGroup({
                 <span className="font-semibold">{medication.name}</span>
                 {medication.kind === 'as_needed' ? (
                   <span className="mt-1 text-sm text-mute">
-                    max {medication.maxAmount} / {medication.windowHours}h
+                    {limitSummary(
+                      medication.maxAmount ?? 0,
+                      medication.unit,
+                      medication.windowHours ?? 24,
+                    )}
                   </span>
                 ) : (
                   <>

@@ -521,14 +521,14 @@ function parseMedicationInput(body: Record<string, unknown>) {
       throw new ApiError(400, 'Set a maximum amount for the window, for example 8 pills.')
     }
     if (!Number.isFinite(windowHours) || windowHours <= 0) {
-      throw new ApiError(400, 'Window hours must be above 0.')
+      throw new ApiError(400, 'Set how long the limit window lasts.')
     }
     return {
       name,
       kind,
       unit,
       max_amount: maxAmount,
-      window_hours: windowHours,
+      window_hours: Math.round(windowHours),
       target_dose: null,
       previous_dose: null,
       trend: null,

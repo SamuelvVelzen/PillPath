@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { DoseTimeField } from './dose-time-field.tsx'
 import { amountLabel, currentTimeValue, takenAtFromTime, timeLabel } from '../lib/dates.ts'
 import { levelCopy, nextLevel, wouldCrossLimit } from '../lib/threshold.ts'
+import { formatWindow, limitSummary } from '../lib/window.ts'
 import type { AsNeededStatus } from '../lib/types.ts'
 import { useApp } from '../context/app-context.tsx'
 
@@ -55,7 +56,7 @@ export function AsNeededCard({ item }: { item: AsNeededStatus }) {
             {item.medication.name}
           </h2>
           <p className="text-sm text-mute">
-            Last {item.windowHours} hours · max {amountLabel(item.max, unit)}
+            {limitSummary(item.max, unit, item.windowHours)}
           </p>
         </div>
         <span className={`rounded-full px-3 py-1 text-sm font-semibold ${levelStyles[item.level]}`}>
@@ -81,7 +82,7 @@ export function AsNeededCard({ item }: { item: AsNeededStatus }) {
           aria-valuemin={0}
           aria-valuemax={item.max}
           aria-valuenow={item.used}
-          aria-label={`${item.medication.name} used ${item.used} of ${item.max} ${unit} in the last ${item.windowHours} hours`}
+          aria-label={`${item.medication.name} used ${item.used} of ${item.max} ${unit} in the last ${formatWindow(item.windowHours)}`}
         >
           <div
             className={`h-full rounded-full ${
@@ -145,7 +146,17 @@ export function AsNeededCard({ item }: { item: AsNeededStatus }) {
             disabled={busy}
             aria-busy={busy}
             aria-label={`Undo last dose of ${item.medication.name}`}
-            onClick={() => void removeDose(last.id)}
+            onClick={async () => {
+              setBusy(true)
+              setError(null)
+              try {
+                await removeDose(last.id)
+              } catch (caught) {
+                setError(caught instanceof Error ? caught.message : 'Could not undo.')
+              } finally {
+                setBusy(false)
+              }
+            }}
             className="min-h-14 rounded-2xl bg-mist font-semibold text-mute disabled:opacity-60"
           >
             Undo

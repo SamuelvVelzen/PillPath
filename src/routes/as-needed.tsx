@@ -17,8 +17,8 @@ function AsNeededPage() {
     <div>
       <PersonBar subtitle="As-needed limits" />
       <p className="mb-5 text-mute">
-        This is the headache-care list — not the daily routine. Watch the
-        threshold so extra pills do not make things worse.
+        For medications taken only when symptoms appear — like paracetamol for pain
+        or fever. Set a limit per hour, day, week, or month so extra doses stand out.
       </p>
 
       <div className="mb-5">
@@ -39,7 +39,7 @@ function AsNeededPage() {
         </div>
       ) : (
         <div className="rounded-3xl bg-paper px-4 py-5 text-mute">
-          <p>Add something like “max 8 pills in 24 hours”.</p>
+          <p>Add something like “max 8 pills per 24 hours” or “max 20 pills per week”.</p>
         </div>
       )}
     </div>

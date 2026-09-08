@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
-import { fetchToday, logDose, deleteDose } from '../lib/api.ts'
+import { fetchMedications, fetchToday, logDose, deleteDose } from '../lib/api.ts'
 import { localDayRange } from '../lib/dates.ts'
 import {
   hasOnboarded,
@@ -15,12 +15,13 @@ import {
   readStoredPersonId,
   storePersonId,
 } from '../lib/person-storage.ts'
-import type { Person, TodayPayload } from '../lib/types.ts'
+import type { Medication, Person, TodayPayload } from '../lib/types.ts'
 
 type AppContextValue = {
   loading: boolean
   error: string | null
   today: TodayPayload | null
+  medications: Medication[]
   people: Person[]
   personId: string
   person: Person | undefined
@@ -38,6 +39,7 @@ const AppContext = createContext<AppContextValue | null>(null)
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [today, setToday] = useState<TodayPayload | null>(null)
+  const [medications, setMedications] = useState<Medication[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [personId, setPersonIdState] = useState(
@@ -47,8 +49,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     const range = localDayRange()
-    const payload = await fetchToday(range.from, range.to)
+    const [payload, medicationList] = await Promise.all([
+      fetchToday(range.from, range.to),
+      fetchMedications(),
+    ])
     setToday(payload)
+    setMedications(medicationList.medications)
     setError(null)
     if (!payload.people.some((person) => person.id === personId)) {
       const fallback = payload.people[0]?.id
@@ -121,6 +127,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       loading,
       error,
       today,
+      medications,
       people,
       personId,
       person,
@@ -137,6 +144,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       loading,
       error,
       today,
+      medications,
       people,
       personId,
       person,

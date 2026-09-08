@@ -10,6 +10,7 @@ import { useApp } from '../context/app-context.tsx'
 import { useMedDialog } from '../context/med-dialog-context.tsx'
 import { createMedication, deleteMedication, updateMedication } from '../lib/api.ts'
 import { fromDisplayValue } from '../lib/schedule.ts'
+import { fromDisplayValue as windowFromDisplayValue } from '../lib/window.ts'
 
 const TITLE_ID = 'med-dialog-title'
 
@@ -65,6 +66,13 @@ export function MedDialog() {
       setError('Set a maximum amount for the window.')
       return
     }
+    if (
+      draft.kind === 'as_needed' &&
+      !(windowFromDisplayValue(draft.windowValue, draft.windowUnit) > 0)
+    ) {
+      setError('Set how long the limit window lasts.')
+      return
+    }
     setBusy(true)
     setError(null)
     try {
@@ -87,10 +95,13 @@ export function MedDialog() {
     if (!state.open || state.mode !== 'edit') return
     if (!window.confirm('Remove this medication and its logs?')) return
     setBusy(true)
+    setError(null)
     try {
       await deleteMedication(state.medication.id)
       await refresh()
       close()
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Could not remove.')
     } finally {
       setBusy(false)
     }

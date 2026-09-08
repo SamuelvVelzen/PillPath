@@ -5,6 +5,7 @@ import { DailyCard } from '../components/daily-card.tsx'
 import { PersonBar } from '../components/person-bar.tsx'
 import { useApp } from '../context/app-context.tsx'
 import { greetingFor, localDayRange } from '../lib/dates.ts'
+import { formatWindow } from '../lib/window.ts'
 import type { MedicationKind } from '../lib/types.ts'
 
 export const Route = createFileRoute('/')({
@@ -31,7 +32,7 @@ function TodayPage() {
           className="mb-3 rounded-3xl bg-warning-soft px-4 py-3 text-clay"
         >
           {item.medication.name} is at {item.used} of {item.max} {item.medication.unit} in
-          the last {item.windowHours} hours.
+          the last {formatWindow(item.windowHours)}.
         </p>
       ))}
 
@@ -86,7 +87,7 @@ function TodayPage() {
           </div>
         ) : (
           <Empty
-            text="No as-needed medication yet. This is the list with limits, like 8 pills in 24 hours."
+            text="No as-needed medication yet. Add pain or fever meds here — like paracetamol with a limit of 8 pills per 24 hours."
             kind="as_needed"
             action="Add a limit"
           />
