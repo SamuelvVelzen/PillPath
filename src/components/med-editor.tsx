@@ -10,14 +10,22 @@ import {
   scheduleSummary,
   type ScheduleUnit,
 } from '../lib/schedule.ts'
+import {
+  bestDisplayValue as bestWindowValue,
+  fromDisplayValue as windowFromDisplayValue,
+  limitSummary,
+  type WindowUnit,
+} from '../lib/window.ts'
 import type { DoseTrend, Medication, MedicationInput, MedicationKind } from '../lib/types.ts'
+import { WindowUnitToggle } from './window-display.tsx'
 
 export type MedDraft = {
   name: string
   kind: MedicationKind
   unit: string
   maxAmount: string
-  windowHours: string
+  windowValue: string
+  windowUnit: WindowUnit
   targetDose: string
   trend: DoseTrend
   notes: string
@@ -34,13 +42,15 @@ export function draftFromMedication(
 ): MedDraft {
   const on = bestDisplayValue(medication?.cycleOnDays ?? 1)
   const off = bestDisplayValue(medication?.cycleOffDays ?? 0)
+  const window = bestWindowValue(medication?.windowHours ?? 24)
 
   return {
     name: medication?.name ?? '',
     kind: medication?.kind ?? kind ?? 'as_needed',
     unit: medication?.unit ?? 'pills',
     maxAmount: medication?.maxAmount != null ? String(medication.maxAmount) : '8',
-    windowHours: medication?.windowHours != null ? String(medication.windowHours) : '24',
+    windowValue: window.value,
+    windowUnit: window.unit,
     targetDose: medication?.targetDose != null ? String(medication.targetDose) : '1',
     trend: medication?.trend ?? 'stable',
     notes: medication?.notes ?? '',
@@ -59,7 +69,7 @@ export function draftToInput(draft: MedDraft): MedicationInput {
       kind: 'as_needed',
       unit: draft.unit,
       maxAmount: Number(draft.maxAmount),
-      windowHours: Number(draft.windowHours),
+      windowHours: windowFromDisplayValue(draft.windowValue, draft.windowUnit),
     }
   }
   return {
@@ -104,9 +114,15 @@ export function MedEditor({
     previewOnDays > 0
       ? scheduleSummary(previewOnDays, previewOffDays)
       : 'Set how long each on and off period lasts.'
+  const previewWindowHours = windowFromDisplayValue(draft.windowValue, draft.windowUnit)
+  const previewMaxAmount = Number(draft.maxAmount)
+  const limitPreview =
+    previewMaxAmount > 0 && previewWindowHours > 0
+      ? limitSummary(previewMaxAmount, draft.unit, previewWindowHours)
+      : 'Set the maximum and time window.'
 
-  return (
-    <section className={bare ? undefined : 'rounded-3xl bg-paper p-4'}>
+  const fields = (
+    <>
       <h2 id={titleId} className="text-xl font-semibold">
         {title}
       </h2>
@@ -144,22 +160,45 @@ export function MedEditor({
 
       {draft.kind === 'as_needed' ? (
         <>
-          <Field label="Maximum in the window">
-            <input
-              className="field"
-              inputMode="decimal"
-              value={draft.maxAmount}
-              onChange={(event) => onChange({ ...draft, maxAmount: event.target.value })}
-            />
-          </Field>
-          <Field label="Window (hours)">
-            <input
-              className="field"
-              inputMode="numeric"
-              value={draft.windowHours}
-              onChange={(event) => onChange({ ...draft, windowHours: event.target.value })}
-            />
-          </Field>
+          <p className="mt-4 text-sm text-mute">
+            For medications taken only when needed — like paracetamol for pain or
+            fever.
+          </p>
+          <div className="mt-4 rounded-2xl bg-canvas p-4">
+            <p className="text-sm font-semibold text-ink">Limit</p>
+            <p className="mt-1 text-sm text-lagoon">{limitPreview}</p>
+
+            <Field label="Maximum amount">
+              <input
+                className="field"
+                inputMode="decimal"
+                value={draft.maxAmount}
+                onChange={(event) => onChange({ ...draft, maxAmount: event.target.value })}
+              />
+            </Field>
+
+            <label className="mt-4 block">
+              <span id="window-unit" className="text-sm font-semibold text-mute">
+                Per
+              </span>
+              <input
+                className="field mt-2"
+                inputMode="decimal"
+                value={draft.windowValue}
+                onChange={(event) =>
+                  onChange({ ...draft, windowValue: event.target.value })
+                }
+                aria-label="Limit window length"
+              />
+              <div className="mt-2">
+                <WindowUnitToggle
+                  id="window-unit"
+                  unit={draft.windowUnit}
+                  onChange={(windowUnit) => onChange({ ...draft, windowUnit })}
+                />
+              </div>
+            </label>
+          </div>
         </>
       ) : (
         <>
@@ -266,13 +305,19 @@ export function MedEditor({
         </>
       )}
 
-      {error ? (
-        <p className="mt-3 text-clay" role="alert">
-          {error}
-        </p>
-      ) : null}
+    </>
+  )
 
-      <div className="mt-5 grid grid-cols-2 gap-2">
+  const errorBlock = error ? (
+    <p className="mb-3 text-clay" role="alert">
+      {error}
+    </p>
+  ) : null
+
+  const actions = (
+    <>
+      {errorBlock}
+      <div className="grid grid-cols-2 gap-2">
         <button
           type="button"
           onClick={onCancel}
@@ -302,6 +347,24 @@ export function MedEditor({
           Remove this medication
         </button>
       ) : null}
+    </>
+  )
+
+  if (bare) {
+    return (
+      <section className="flex min-h-0 flex-1 flex-col">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{fields}</div>
+        <div className="sticky bottom-0 -mx-4 mt-4 border-t border-line/70 bg-paper px-4 pt-4 pb-[max(0.25rem,env(safe-area-inset-bottom))]">
+          {actions}
+        </div>
+      </section>
+    )
+  }
+
+  return (
+    <section className="rounded-3xl bg-paper p-4">
+      {fields}
+      <div className="mt-5">{actions}</div>
     </section>
   )
 }

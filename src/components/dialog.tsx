@@ -81,7 +81,7 @@ export function Dialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="relative z-10 max-h-[min(90svh,44rem)] w-full max-w-lg overflow-y-auto rounded-3xl bg-paper p-4 shadow-lg shadow-ink/20 pointer-events-auto"
+        className="relative z-10 flex max-h-[min(90svh,44rem)] w-full max-w-lg flex-col overflow-hidden rounded-3xl bg-paper p-4 shadow-lg shadow-ink/20 pointer-events-auto"
       >
         {children}
       </div>
