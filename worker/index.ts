@@ -379,6 +379,38 @@ app.get('/api/today', async (c) => {
   })
 })
 
+app.get('/api/month', async (c) => {
+  const from = c.req.query('from')
+  const to = c.req.query('to')
+  if (!from || !to) {
+    throw new ApiError(400, 'Month start and end are needed.')
+  }
+
+  const people = await c.env.DB.prepare(
+    'SELECT id, name, role FROM people ORDER BY role DESC, name',
+  ).all<PersonRow>()
+  const medications = await c.env.DB.prepare(
+    'SELECT * FROM medications WHERE active = 1 ORDER BY kind, sort_order, name',
+  ).all<MedicationRow>()
+  const personMap = new Map(people.results.map((person) => [person.id, person.name]))
+  const doses = await c.env.DB.prepare(
+    `SELECT * FROM doses
+     WHERE taken_at >= ? AND taken_at < ?
+     ORDER BY taken_at ASC
+     LIMIT 2000`,
+  )
+    .bind(from, to)
+    .all<DoseRow>()
+
+  return c.json({
+    people: people.results,
+    from,
+    to,
+    medications: medications.results.map(mapMedication),
+    doses: doses.results.map((dose) => mapDose(dose, personMap)),
+  })
+})
+
 export default {
   fetch: app.fetch,
 }

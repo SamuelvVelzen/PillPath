@@ -1,4 +1,4 @@
-import type { Medication, MedicationInput, Person, TodayPayload } from './types.ts'
+import type { Medication, MedicationInput, MonthPayload, Person, TodayPayload } from './types.ts'
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
@@ -24,6 +24,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 export function fetchToday(from: string, to: string) {
   return request<TodayPayload>(
     `/api/today?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+  )
+}
+
+export function fetchMonth(from: string, to: string) {
+  return request<MonthPayload>(
+    `/api/month?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
   )
 }
 

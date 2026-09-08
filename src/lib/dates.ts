@@ -32,3 +32,46 @@ export function amountLabel(amount: number, unit: string) {
   const rounded = Number.isInteger(amount) ? String(amount) : amount.toFixed(1)
   return `${rounded} ${unit}`
 }
+
+export function localMonthRange(year: number, monthIndex: number) {
+  const start = new Date(year, monthIndex, 1)
+  start.setHours(0, 0, 0, 0)
+  const end = new Date(year, monthIndex + 1, 1)
+  end.setHours(0, 0, 0, 0)
+  return {
+    from: start.toISOString(),
+    to: end.toISOString(),
+  }
+}
+
+export function localDateKey(isoOrDate: string | Date) {
+  const date = typeof isoOrDate === 'string' ? new Date(isoOrDate) : isoOrDate
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+export function monthLabel(year: number, monthIndex: number) {
+  return new Date(year, monthIndex, 1).toLocaleDateString(undefined, {
+    month: 'long',
+    year: 'numeric',
+  })
+}
+
+export function weekdayLabels() {
+  const sunday = new Date(2024, 0, 7)
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(sunday)
+    date.setDate(sunday.getDate() + index)
+    return date.toLocaleDateString(undefined, { weekday: 'short' })
+  })
+}
+
+export function daysInMonth(year: number, monthIndex: number) {
+  return new Date(year, monthIndex + 1, 0).getDate()
+}
+
+export function startPad(year: number, monthIndex: number) {
+  return new Date(year, monthIndex, 1).getDay()
+}

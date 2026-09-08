@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AsNeededRouteImport } from './routes/as-needed'
 import { Route as DailyRouteImport } from './routes/daily'
+import { Route as MonthRouteImport } from './routes/month'
 import { Route as SettingsRouteImport } from './routes/settings'
 
 const IndexRoute = IndexRouteImport.update({
@@ -29,6 +30,11 @@ const DailyRoute = DailyRouteImport.update({
   path: '/daily',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MonthRoute = MonthRouteImport.update({
+  id: '/month',
+  path: '/month',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/as-needed': typeof AsNeededRoute
   '/daily': typeof DailyRoute
+  '/month': typeof MonthRoute
   '/settings': typeof SettingsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/as-needed': typeof AsNeededRoute
   '/daily': typeof DailyRoute
+  '/month': typeof MonthRoute
   '/settings': typeof SettingsRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/as-needed': typeof AsNeededRoute
   '/daily': typeof DailyRoute
+  '/month': typeof MonthRoute
   '/settings': typeof SettingsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/as-needed' | '/daily' | '/settings'
+  fullPaths: '/' | '/as-needed' | '/daily' | '/month' | '/settings'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/as-needed' | '/daily' | '/settings'
-  id: '__root__' | '/' | '/as-needed' | '/daily' | '/settings'
+  to: '/' | '/as-needed' | '/daily' | '/month' | '/settings'
+  id: '__root__' | '/' | '/as-needed' | '/daily' | '/month' | '/settings'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AsNeededRoute: typeof AsNeededRoute
   DailyRoute: typeof DailyRoute
+  MonthRoute: typeof MonthRoute
   SettingsRoute: typeof SettingsRoute
 }
 
@@ -92,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DailyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/month': {
+      id: '/month'
+      path: '/month'
+      fullPath: '/month'
+      preLoaderRoute: typeof MonthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -106,6 +123,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AsNeededRoute: AsNeededRoute,
   DailyRoute: DailyRoute,
+  MonthRoute: MonthRoute,
   SettingsRoute: SettingsRoute,
 }
 export const routeTree = rootRouteImport

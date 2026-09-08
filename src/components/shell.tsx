@@ -1,5 +1,5 @@
 import { Link, Outlet, useRouterState } from '@tanstack/react-router'
-import { CalendarCheck, House, Pill, Settings2 } from 'lucide-react'
+import { CalendarCheck, CalendarDays, House, Pill, Settings2 } from 'lucide-react'
 import { useApp } from '../context/app-context.tsx'
 import { ThemeToggle } from './theme-toggle.tsx'
 import { InstallHint } from './install-hint.tsx'
@@ -9,6 +9,7 @@ export const tabs = [
   { to: '/', label: 'Today', icon: House, exact: true },
   { to: '/as-needed', label: 'As-needed', icon: Pill, exact: false },
   { to: '/daily', label: 'Daily', icon: CalendarCheck, exact: false },
+  { to: '/month', label: 'Month', icon: CalendarDays, exact: false },
   { to: '/settings', label: 'Settings', icon: Settings2, exact: false },
 ] as const
 
@@ -80,7 +81,7 @@ function NavList({
   variant: 'tabs' | 'sidebar'
 }) {
   const listClass =
-    variant === 'tabs' ? 'grid grid-cols-4 gap-1' : 'flex flex-col gap-1'
+    variant === 'tabs' ? 'grid grid-cols-5 gap-1' : 'flex flex-col gap-1'
 
   return (
     <ul className={listClass}>

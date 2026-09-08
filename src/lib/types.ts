@@ -61,6 +61,14 @@ export type TodayPayload = {
   asNeeded: AsNeededStatus[]
 }
 
+export type MonthPayload = {
+  people: Person[]
+  from: string
+  to: string
+  medications: Medication[]
+  doses: Dose[]
+}
+
 export type MedicationInput = {
   name: string
   kind: MedicationKind
