@@ -8,7 +8,7 @@ import { useTheme } from '../context/theme-context.tsx'
 import { renamePerson } from '../lib/api.ts'
 import type { Medication } from '../lib/types.ts'
 import type { Theme } from '../lib/theme.ts'
-import { scheduleSummary } from '../lib/schedule.ts'
+import { ScheduleBadge } from '../components/schedule-display.tsx'
 
 export const Route = createFileRoute('/settings')({
   component: SettingsPage,
@@ -106,7 +106,7 @@ function SettingsPage() {
       />
       <MedicationGroup
         title="Scheduled"
-        hint="Flexible on/off cycles, like 3 weeks on and 1 week off."
+        hint="Any on/off pattern — weeks, days, or a mix."
         items={medications.filter((medication) => medication.kind === 'daily')}
         onEdit={openEdit}
       />
@@ -179,14 +179,21 @@ function MedicationGroup({
                 type="button"
                 onClick={() => onEdit(medication)}
                 aria-label={`Edit ${medication.name}`}
-                className="flex min-h-14 w-full items-center justify-between rounded-3xl bg-paper px-4 text-left"
+                className="flex min-h-14 w-full flex-col items-start rounded-3xl bg-paper px-4 py-3 text-left"
               >
                 <span className="font-semibold">{medication.name}</span>
-                <span className="text-sm text-mute">
-                  {medication.kind === 'as_needed'
-                    ? `max ${medication.maxAmount} / ${medication.windowHours}h`
-                    : `${medication.targetDose} ${medication.unit} · ${scheduleSummary(medication.cycleOnDays, medication.cycleOffDays)}`}
-                </span>
+                {medication.kind === 'as_needed' ? (
+                  <span className="mt-1 text-sm text-mute">
+                    max {medication.maxAmount} / {medication.windowHours}h
+                  </span>
+                ) : (
+                  <>
+                    <span className="mt-1 text-sm text-mute">
+                      {medication.targetDose} {medication.unit} each time
+                    </span>
+                    <ScheduleBadge medication={medication} showStatus />
+                  </>
+                )}
               </button>
             </li>
           ))}

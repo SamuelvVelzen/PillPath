@@ -1,6 +1,15 @@
 import { type ReactNode } from 'react'
 import { localDateKey } from '../lib/dates.ts'
-import { scheduleSummary } from '../lib/schedule.ts'
+import {
+  SchedulePreview,
+  ScheduleUnitToggle,
+} from './schedule-display.tsx'
+import {
+  bestDisplayValue,
+  fromDisplayValue,
+  scheduleSummary,
+  type ScheduleUnit,
+} from '../lib/schedule.ts'
 import type { DoseTrend, Medication, MedicationInput, MedicationKind } from '../lib/types.ts'
 
 export type MedDraft = {
@@ -12,8 +21,10 @@ export type MedDraft = {
   targetDose: string
   trend: DoseTrend
   notes: string
-  cycleOnDays: string
-  cycleOffDays: string
+  cycleOnValue: string
+  cycleOnUnit: ScheduleUnit
+  cycleOffValue: string
+  cycleOffUnit: ScheduleUnit
   cycleStart: string
 }
 
@@ -21,6 +32,9 @@ export function draftFromMedication(
   medication?: Medication | null,
   kind?: MedicationKind,
 ): MedDraft {
+  const on = bestDisplayValue(medication?.cycleOnDays ?? 1)
+  const off = bestDisplayValue(medication?.cycleOffDays ?? 0)
+
   return {
     name: medication?.name ?? '',
     kind: medication?.kind ?? kind ?? 'as_needed',
@@ -30,8 +44,10 @@ export function draftFromMedication(
     targetDose: medication?.targetDose != null ? String(medication.targetDose) : '1',
     trend: medication?.trend ?? 'stable',
     notes: medication?.notes ?? '',
-    cycleOnDays: medication?.cycleOnDays != null ? String(medication.cycleOnDays) : '1',
-    cycleOffDays: medication?.cycleOffDays != null ? String(medication.cycleOffDays) : '0',
+    cycleOnValue: on.value,
+    cycleOnUnit: on.unit,
+    cycleOffValue: off.value,
+    cycleOffUnit: off.unit,
     cycleStart: medication?.cycleStart ?? localDateKey(new Date()),
   }
 }
@@ -53,17 +69,11 @@ export function draftToInput(draft: MedDraft): MedicationInput {
     targetDose: Number(draft.targetDose),
     trend: draft.trend,
     notes: draft.notes,
-    cycleOnDays: Number(draft.cycleOnDays),
-    cycleOffDays: Number(draft.cycleOffDays),
+    cycleOnDays: fromDisplayValue(draft.cycleOnValue, draft.cycleOnUnit),
+    cycleOffDays: fromDisplayValue(draft.cycleOffValue, draft.cycleOffUnit),
     cycleStart: draft.cycleStart,
   }
 }
-
-const schedulePresets = [
-  { id: 'daily', label: 'Every day', on: '1', off: '0' },
-  { id: '1w-1w', label: '1 week on, 1 week off', on: '7', off: '7' },
-  { id: '3w-1w', label: '3 weeks on, 1 week off', on: '21', off: '7' },
-] as const
 
 export function MedEditor({
   title,
@@ -88,11 +98,12 @@ export function MedEditor({
   error: string | null
   bare?: boolean
 }) {
-  const activePreset =
-    schedulePresets.find(
-      (preset) =>
-        preset.on === draft.cycleOnDays && preset.off === draft.cycleOffDays,
-    )?.id ?? 'custom'
+  const previewOnDays = fromDisplayValue(draft.cycleOnValue, draft.cycleOnUnit)
+  const previewOffDays = fromDisplayValue(draft.cycleOffValue, draft.cycleOffUnit)
+  const previewSummary =
+    previewOnDays > 0
+      ? scheduleSummary(previewOnDays, previewOffDays)
+      : 'Set how long each on and off period lasts.'
 
   return (
     <section className={bare ? undefined : 'rounded-3xl bg-paper p-4'}>
@@ -161,56 +172,51 @@ export function MedEditor({
             />
           </Field>
 
-          <p className="mt-4 text-sm font-semibold text-mute" id="schedule-preset-label">
-            When is it taken?
+          <p className="mt-4 text-sm font-semibold text-mute">Schedule</p>
+          <p className="mt-1 text-sm text-mute">
+            Set any pattern you need — for example 3 weeks on and 10 days off, or
+            5 days on and 2 days off.
           </p>
-          <div
-            className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2"
-            role="group"
-            aria-labelledby="schedule-preset-label"
-          >
-            {schedulePresets.map((preset) => (
-              <button
-                key={preset.id}
-                type="button"
-                aria-pressed={activePreset === preset.id}
-                onClick={() =>
-                  onChange({
-                    ...draft,
-                    cycleOnDays: preset.on,
-                    cycleOffDays: preset.off,
-                  })
+
+          <div className="mt-4 rounded-2xl bg-canvas p-3">
+            <p className="text-sm font-semibold text-ink">On period</p>
+            <div className="mt-2 grid grid-cols-[minmax(0,1fr)_8.5rem] gap-2">
+              <input
+                className="field"
+                inputMode="decimal"
+                value={draft.cycleOnValue}
+                onChange={(event) =>
+                  onChange({ ...draft, cycleOnValue: event.target.value })
                 }
-                className={`min-h-12 rounded-2xl px-3 text-sm font-semibold ${
-                  activePreset === preset.id ? 'bg-lagoon text-paper' : 'bg-mist text-ink'
-                }`}
-              >
-                {preset.label}
-              </button>
-            ))}
+                aria-label="On period length"
+              />
+              <ScheduleUnitToggle
+                id="on-period-unit"
+                unit={draft.cycleOnUnit}
+                onChange={(cycleOnUnit) => onChange({ ...draft, cycleOnUnit })}
+              />
+            </div>
           </div>
 
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <Field label="Days on">
+          <div className="mt-3 rounded-2xl bg-canvas p-3">
+            <p className="text-sm font-semibold text-ink">Break period</p>
+            <p className="mt-1 text-xs text-mute">Use 0 for no break between cycles.</p>
+            <div className="mt-2 grid grid-cols-[minmax(0,1fr)_8.5rem] gap-2">
               <input
                 className="field"
-                inputMode="numeric"
-                value={draft.cycleOnDays}
+                inputMode="decimal"
+                value={draft.cycleOffValue}
                 onChange={(event) =>
-                  onChange({ ...draft, cycleOnDays: event.target.value })
+                  onChange({ ...draft, cycleOffValue: event.target.value })
                 }
+                aria-label="Break period length"
               />
-            </Field>
-            <Field label="Days off">
-              <input
-                className="field"
-                inputMode="numeric"
-                value={draft.cycleOffDays}
-                onChange={(event) =>
-                  onChange({ ...draft, cycleOffDays: event.target.value })
-                }
+              <ScheduleUnitToggle
+                id="off-period-unit"
+                unit={draft.cycleOffUnit}
+                onChange={(cycleOffUnit) => onChange({ ...draft, cycleOffUnit })}
               />
-            </Field>
+            </div>
           </div>
 
           <Field label="Cycle starts">
@@ -222,9 +228,15 @@ export function MedEditor({
             />
           </Field>
 
-          <p className="mt-2 text-sm text-mute">
-            {scheduleSummary(Number(draft.cycleOnDays), Number(draft.cycleOffDays))}
-          </p>
+          <p className="mt-2 text-sm font-semibold text-ink">{previewSummary}</p>
+
+          {previewOnDays > 0 ? (
+            <SchedulePreview
+              cycleOnDays={previewOnDays}
+              cycleOffDays={previewOffDays}
+              cycleStart={draft.cycleStart}
+            />
+          ) : null}
 
           <p className="mt-4 text-sm font-semibold text-mute" id="dose-trend-label">
             Is the dose moving?

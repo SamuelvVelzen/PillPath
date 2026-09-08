@@ -9,6 +9,7 @@ import {
 import { useApp } from '../context/app-context.tsx'
 import { useMedDialog } from '../context/med-dialog-context.tsx'
 import { createMedication, deleteMedication, updateMedication } from '../lib/api.ts'
+import { fromDisplayValue } from '../lib/schedule.ts'
 
 const TITLE_ID = 'med-dialog-title'
 
@@ -41,12 +42,15 @@ export function MedDialog() {
       setError('Give the medication a name.')
       return
     }
-    if (draft.kind === 'daily' && !(Number(draft.cycleOnDays) > 0)) {
-      setError('Set how many days the medication is taken.')
+    if (draft.kind === 'daily' && !(fromDisplayValue(draft.cycleOnValue, draft.cycleOnUnit) > 0)) {
+      setError('Set how long the on period lasts.')
       return
     }
-    if (draft.kind === 'daily' && Number(draft.cycleOffDays) < 0) {
-      setError('Break days cannot be negative.')
+    if (
+      draft.kind === 'daily' &&
+      fromDisplayValue(draft.cycleOffValue, draft.cycleOffUnit) < 0
+    ) {
+      setError('Break length cannot be negative.')
       return
     }
     if (draft.kind === 'daily' && !draft.cycleStart) {

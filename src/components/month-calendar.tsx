@@ -9,7 +9,11 @@ import {
   timeLabel,
   weekdayLabels,
 } from '../lib/dates.ts'
-import { isScheduledDue } from '../lib/schedule.ts'
+import {
+  isScheduledDue,
+  scheduleStatusLabel,
+  scheduleSummary,
+} from '../lib/schedule.ts'
 import type { Dose, Medication } from '../lib/types.ts'
 
 type Props = {
@@ -208,14 +212,24 @@ export function MonthCalendar({
                 )
                 const logged = selected?.scheduled.get(medication.id) ?? []
                 const dose = logged[0]
+                const status = scheduleStatusLabel(
+                  medication.cycleOnDays,
+                  medication.cycleOffDays,
+                  medication.cycleStart,
+                  selectedDate,
+                )
                 return {
                   id: medication.id,
                   name: medication.name,
-                  detail: !due
-                    ? 'Break day'
-                    : logged.length
-                      ? `Checked off · ${timeLabel(dose.takenAt)}`
-                      : 'Due · not checked off',
+                  subdetail: scheduleSummary(
+                    medication.cycleOnDays,
+                    medication.cycleOffDays,
+                  ),
+                  detail: logged.length
+                    ? `Checked off · ${timeLabel(dose.takenAt)}`
+                    : due
+                      ? `${status} · not checked off`
+                      : status,
                   active: due && logged.length > 0,
                 }
               })}
@@ -250,7 +264,13 @@ function DayGroup({
 }: {
   title: string
   empty: string
-  items: Array<{ id: string; name: string; detail: string; active: boolean }>
+  items: Array<{
+    id: string
+    name: string
+    subdetail?: string
+    detail: string
+    active: boolean
+  }>
 }) {
   if (items.length === 0) {
     return (
@@ -268,12 +288,19 @@ function DayGroup({
         {items.map((item) => (
           <li
             key={item.id}
-            className="flex items-center justify-between gap-3 rounded-2xl bg-canvas px-3 py-2"
+            className="rounded-2xl bg-canvas px-3 py-2"
           >
-            <span className="font-semibold">{item.name}</span>
-            <span className={`text-sm ${item.active ? 'text-ink' : 'text-mute'}`}>
-              {item.detail}
-            </span>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="font-semibold">{item.name}</p>
+                {item.subdetail ? (
+                  <p className="mt-1 text-xs text-mute">{item.subdetail}</p>
+                ) : null}
+              </div>
+              <span className={`text-right text-sm ${item.active ? 'text-ink' : 'text-mute'}`}>
+                {item.detail}
+              </span>
+            </div>
           </li>
         ))}
       </ul>

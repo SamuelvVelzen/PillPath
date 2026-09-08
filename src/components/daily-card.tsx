@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { DoseTimeField } from './dose-time-field.tsx'
+import { ScheduleBadge } from './schedule-display.tsx'
 import { amountLabel, currentTimeValue, takenAtFromTime, timeLabel } from '../lib/dates.ts'
-import { scheduleSummary } from '../lib/schedule.ts'
 import type { DailyStatus, DoseTrend } from '../lib/types.ts'
 import { useApp } from '../context/app-context.tsx'
 
@@ -18,10 +18,6 @@ export function DailyCard({ item }: { item: DailyStatus }) {
   const dose = item.medication.targetDose ?? 1
   const unit = item.medication.unit
   const trend = item.medication.trend ?? 'stable'
-  const schedule = scheduleSummary(
-    item.medication.cycleOnDays,
-    item.medication.cycleOffDays,
-  )
 
   useEffect(() => {
     if (item.todayDoses[0]) {
@@ -54,11 +50,12 @@ export function DailyCard({ item }: { item: DailyStatus }) {
             {item.medication.name}
           </h2>
           <p className="text-mute">
-            {amountLabel(dose, unit)} · {schedule}
+            {amountLabel(dose, unit)}
             {item.medication.previousDose
               ? ` · was ${amountLabel(item.medication.previousDose, unit)}`
               : ''}
           </p>
+          <ScheduleBadge medication={item.medication} showStatus />
         </div>
         <span
           className={`rounded-full px-3 py-1 text-sm font-semibold ${
