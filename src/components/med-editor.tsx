@@ -22,7 +22,7 @@ export function draftFromMedication(
     unit: medication?.unit ?? 'pills',
     maxAmount: medication?.maxAmount != null ? String(medication.maxAmount) : '8',
     windowHours: medication?.windowHours != null ? String(medication.windowHours) : '24',
-    targetDose: medication?.targetDose != null ? String(medication.targetDose) : '',
+    targetDose: medication?.targetDose != null ? String(medication.targetDose) : '1',
     trend: medication?.trend ?? 'stable',
     notes: medication?.notes ?? '',
   }

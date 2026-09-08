@@ -36,11 +36,24 @@ export function MedDialog() {
     state.mode === 'edit' ? `Edit ${state.medication.name}` : 'New medication'
 
   async function save() {
+    if (!state.open) return
+    if (!draft.name.trim()) {
+      setError('Give the medication a name.')
+      return
+    }
+    if (draft.kind === 'daily' && !(Number(draft.targetDose) > 0)) {
+      setError('Set the current daily dose.')
+      return
+    }
+    if (draft.kind === 'as_needed' && !(Number(draft.maxAmount) > 0)) {
+      setError('Set a maximum amount for the window.')
+      return
+    }
     setBusy(true)
     setError(null)
     try {
       const input = draftToInput(draft)
-      if (state.open && state.mode === 'edit') {
+      if (state.mode === 'edit') {
         await updateMedication(state.medication.id, input)
       } else {
         await createMedication(input)
