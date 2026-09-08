@@ -16,7 +16,11 @@ export function PersonBar({ subtitle }: { subtitle: string }) {
       <p className="mt-1 text-mute">
         Logging as {person?.name ?? 'you'}. Both of you share the same list.
       </p>
-      <div className="mt-4 grid max-w-md grid-cols-2 gap-2">
+      <div
+        className="mt-4 grid max-w-md grid-cols-2 gap-2"
+        role="group"
+        aria-label="Who is logging"
+      >
         {people.map((entry) => {
           const selected = entry.id === personId
           return (
@@ -24,6 +28,7 @@ export function PersonBar({ subtitle }: { subtitle: string }) {
               key={entry.id}
               type="button"
               onClick={() => setPersonId(entry.id)}
+              aria-pressed={selected}
               className={`min-h-12 rounded-2xl px-3 text-sm font-semibold ${
                 selected ? 'bg-lagoon text-paper' : 'bg-paper text-ink'
               }`}

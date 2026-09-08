@@ -18,6 +18,12 @@ export function Shell() {
 
   return (
     <div className="mx-auto flex min-h-svh w-full max-w-md flex-col bg-canvas lg:max-w-none lg:flex-row">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-2xl focus:bg-paper focus:px-4 focus:py-2 focus:text-ink"
+      >
+        Skip to content
+      </a>
       <aside className="hidden lg:sticky lg:top-0 lg:flex lg:h-svh lg:w-64 lg:shrink-0 lg:flex-col lg:border-r lg:border-line/80 lg:bg-paper lg:px-4 lg:pt-[max(1.5rem,env(safe-area-inset-top))] lg:pb-6">
         <p className="px-3 text-sm font-semibold tracking-[0.16em] text-lagoon uppercase">
           PillPath
@@ -34,12 +40,19 @@ export function Shell() {
       </aside>
 
       <div className="flex min-h-svh min-w-0 flex-1 flex-col">
-        <main className="mx-auto w-full max-w-md flex-1 px-4 pb-[calc(6.25rem+env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] lg:max-w-5xl lg:px-8 lg:pb-10 lg:pt-8">
+        <main
+          id="main-content"
+          className="mx-auto w-full max-w-md flex-1 px-4 pb-[calc(6.25rem+env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] lg:max-w-5xl lg:px-8 lg:pb-10 lg:pt-8"
+        >
           {error ? (
-            <p className="rounded-3xl bg-over-soft px-4 py-3 text-clay">{error}</p>
+            <p role="alert" className="rounded-3xl bg-over-soft px-4 py-3 text-clay">
+              {error}
+            </p>
           ) : null}
           {loading ? (
-            <p className="mt-8 text-center text-mute">Loading a quiet view…</p>
+            <p role="status" className="mt-8 text-center text-mute">
+              Loading a quiet view…
+            </p>
           ) : (
             <Outlet />
           )}
@@ -78,6 +91,7 @@ function NavList({
           <li key={tab.to}>
             <Link
               to={tab.to}
+              aria-current={active ? 'page' : undefined}
               className={
                 variant === 'tabs'
                   ? `flex min-h-14 flex-col items-center justify-center rounded-2xl text-xs font-semibold tracking-wide ${
@@ -88,7 +102,11 @@ function NavList({
                     }`
               }
             >
-              <Icon size={variant === 'tabs' ? 22 : 20} strokeWidth={1.75} />
+              <Icon
+                size={variant === 'tabs' ? 22 : 20}
+                strokeWidth={1.75}
+                aria-hidden="true"
+              />
               <span className={variant === 'tabs' ? 'mt-1' : undefined}>{tab.label}</span>
             </Link>
           </li>

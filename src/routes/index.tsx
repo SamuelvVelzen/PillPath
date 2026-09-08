@@ -25,6 +25,7 @@ function TodayPage() {
       {warnings.map((item) => (
         <p
           key={item.medication.id}
+          role="status"
           className="mb-3 rounded-3xl bg-warning-soft px-4 py-3 text-clay"
         >
           {item.medication.name} is at {item.used} of {item.max} {item.medication.unit} in

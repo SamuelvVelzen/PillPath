@@ -111,21 +111,33 @@ function SettingsPage() {
         <p className="mt-1 text-sm text-mute">
           You can both open the same app, fill things in, and see the same result.
         </p>
-        <label className="mt-4 block text-sm font-semibold text-mute">Your name</label>
+        <label className="mt-4 block text-sm font-semibold text-mute" htmlFor="helper-name">
+          Your name
+        </label>
         <input
+          id="helper-name"
           className="field mt-2"
           value={helperName}
+          autoComplete="name"
           onChange={(event) => setHelperName(event.target.value)}
           onBlur={() => void saveNames()}
         />
-        <label className="mt-4 block text-sm font-semibold text-mute">Her name</label>
+        <label className="mt-4 block text-sm font-semibold text-mute" htmlFor="primary-name">
+          Her name
+        </label>
         <input
+          id="primary-name"
           className="field mt-2"
           value={primaryName}
+          autoComplete="name"
           onChange={(event) => setPrimaryName(event.target.value)}
           onBlur={() => void saveNames()}
         />
-        {nameError ? <p className="mt-2 text-sm text-clay">{nameError}</p> : null}
+        {nameError ? (
+          <p className="mt-2 text-sm text-clay" role="alert">
+            {nameError}
+          </p>
+        ) : null}
       </section>
 
       <section className="mb-6 rounded-3xl bg-paper p-4 lg:mb-0">
@@ -194,13 +206,15 @@ function ThemePicker() {
   ]
 
   return (
-    <div className="mt-4 grid grid-cols-3 gap-2">
+    <div className="mt-4 grid grid-cols-3 gap-2" role="radiogroup" aria-label="Theme">
       {options.map((option) => {
         const selected = theme === option.id
         return (
           <button
             key={option.id}
             type="button"
+            role="radio"
+            aria-checked={selected}
             onClick={() => setTheme(option.id)}
             className={`min-h-12 rounded-2xl text-sm font-semibold ${
               selected ? 'bg-lagoon text-paper' : 'bg-mist text-ink'
@@ -238,6 +252,7 @@ function MedicationGroup({
               <button
                 type="button"
                 onClick={() => onEdit(medication)}
+                aria-label={`Edit ${medication.name}`}
                 className="flex min-h-14 w-full items-center justify-between rounded-3xl bg-paper px-4 text-left"
               >
                 <span className="font-semibold">{medication.name}</span>

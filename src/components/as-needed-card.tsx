@@ -39,10 +39,18 @@ export function AsNeededCard({ item }: { item: AsNeededStatus }) {
   }
 
   return (
-    <article className="h-full rounded-3xl bg-paper p-4">
+    <article
+      className="h-full rounded-3xl bg-paper p-4"
+      aria-labelledby={`as-needed-${item.medication.id}-name`}
+    >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold">{item.medication.name}</h2>
+          <h2
+            id={`as-needed-${item.medication.id}-name`}
+            className="text-xl font-semibold"
+          >
+            {item.medication.name}
+          </h2>
           <p className="text-sm text-mute">
             Last {item.windowHours} hours · max {amountLabel(item.max, unit)}
           </p>
@@ -64,7 +72,14 @@ export function AsNeededCard({ item }: { item: AsNeededStatus }) {
               : 'No more in this window'}
           </p>
         </div>
-        <div className="h-2 overflow-hidden rounded-full bg-mist">
+        <div
+          className="h-2 overflow-hidden rounded-full bg-mist"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={item.max}
+          aria-valuenow={item.used}
+          aria-label={`${item.medication.name} used ${item.used} of ${item.max} ${unit} in the last ${item.windowHours} hours`}
+        >
           <div
             className={`h-full rounded-full ${
               item.level === 'over' || item.level === 'warning'
@@ -79,19 +94,25 @@ export function AsNeededCard({ item }: { item: AsNeededStatus }) {
       </div>
 
       {confirm !== null ? (
-        <p className="mt-4 rounded-2xl bg-warning-soft px-3 py-3 text-sm text-clay">
+        <p className="mt-4 rounded-2xl bg-warning-soft px-3 py-3 text-sm text-clay" role="alert">
           {wouldCrossLimit(item.used, confirm, item.max)
             ? `This would go over the limit (${item.used + confirm} of ${item.max} ${unit}). Only continue if that was planned.`
             : `This brings you to ${item.used + confirm} of ${item.max} ${unit} — very close to the limit.`}
         </p>
       ) : null}
 
-      {error ? <p className="mt-3 text-sm text-clay">{error}</p> : null}
+      {error ? (
+        <p className="mt-3 text-sm text-clay" role="alert">
+          {error}
+        </p>
+      ) : null}
 
       <div className="mt-4 grid grid-cols-3 gap-2">
         <button
           type="button"
           disabled={busy}
+          aria-busy={busy}
+          aria-label={`Log one ${unit} of ${item.medication.name}`}
           onClick={() => void log(1)}
           className="min-h-14 rounded-2xl bg-mist font-semibold disabled:opacity-60"
         >
@@ -100,6 +121,8 @@ export function AsNeededCard({ item }: { item: AsNeededStatus }) {
         <button
           type="button"
           disabled={busy}
+          aria-busy={busy}
+          aria-label={`Log half a ${unit} of ${item.medication.name}`}
           onClick={() => void log(0.5)}
           className="min-h-14 rounded-2xl bg-mist font-semibold disabled:opacity-60"
         >
@@ -109,13 +132,15 @@ export function AsNeededCard({ item }: { item: AsNeededStatus }) {
           <button
             type="button"
             disabled={busy}
+            aria-busy={busy}
+            aria-label={`Undo last dose of ${item.medication.name}`}
             onClick={() => void removeDose(last.id)}
             className="min-h-14 rounded-2xl bg-mist font-semibold text-mute disabled:opacity-60"
           >
             Undo
           </button>
         ) : (
-          <div className="min-h-14 rounded-2xl bg-canvas/70" />
+          <div className="min-h-14 rounded-2xl bg-canvas/70" aria-hidden="true" />
         )}
       </div>
 

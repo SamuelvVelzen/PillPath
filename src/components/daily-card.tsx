@@ -30,10 +30,15 @@ export function DailyCard({ item }: { item: DailyStatus }) {
   }
 
   return (
-    <article className="h-full rounded-3xl bg-paper p-4">
+    <article
+      aria-labelledby={`daily-${item.medication.id}-name`}
+      className="h-full rounded-3xl bg-paper p-4"
+    >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold">{item.medication.name}</h2>
+          <h2 id={`daily-${item.medication.id}-name`} className="text-xl font-semibold">
+            {item.medication.name}
+          </h2>
           <p className="text-mute">
             {amountLabel(dose, unit)}
             {item.medication.previousDose
@@ -61,6 +66,8 @@ export function DailyCard({ item }: { item: DailyStatus }) {
       <button
         type="button"
         disabled={busy}
+        aria-pressed={item.takenToday}
+        aria-busy={busy}
         onClick={() => void toggle()}
         className={`mt-4 min-h-14 w-full rounded-2xl text-base font-semibold disabled:opacity-60 ${
           item.takenToday ? 'bg-sage text-paper' : 'bg-mist text-ink'

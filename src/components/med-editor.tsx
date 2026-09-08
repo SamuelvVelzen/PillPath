@@ -56,7 +56,7 @@ export function MedEditor({
         />
       </Field>
 
-      <div className="mt-4 grid grid-cols-2 gap-2">
+      <div className="mt-4 grid grid-cols-2 gap-2" role="group" aria-label="Medication kind">
         <KindButton
           selected={draft.kind === 'as_needed'}
           onClick={() => onChange({ ...draft, kind: 'as_needed' })}
@@ -108,12 +108,15 @@ export function MedEditor({
               onChange={(event) => onChange({ ...draft, targetDose: event.target.value })}
             />
           </Field>
-          <p className="mt-4 text-sm font-semibold text-mute">Is the dose moving?</p>
-          <div className="mt-2 grid grid-cols-3 gap-2">
+          <p className="mt-4 text-sm font-semibold text-mute" id="dose-trend-label">
+            Is the dose moving?
+          </p>
+          <div className="mt-2 grid grid-cols-3 gap-2" role="group" aria-labelledby="dose-trend-label">
             {(['down', 'stable', 'up'] as const).map((trend) => (
               <button
                 key={trend}
                 type="button"
+                aria-pressed={draft.trend === trend}
                 onClick={() => onChange({ ...draft, trend })}
                 className={`min-h-12 rounded-2xl text-sm font-semibold ${
                   draft.trend === trend ? 'bg-lagoon text-paper' : 'bg-mist text-ink'
@@ -133,7 +136,11 @@ export function MedEditor({
         </>
       )}
 
-      {error ? <p className="mt-3 text-clay">{error}</p> : null}
+      {error ? (
+        <p className="mt-3 text-clay" role="alert">
+          {error}
+        </p>
+      ) : null}
 
       <div className="mt-5 grid grid-cols-2 gap-2">
         <button
@@ -146,6 +153,7 @@ export function MedEditor({
         <button
           type="button"
           disabled={busy}
+          aria-busy={busy}
           onClick={onSave}
           className="min-h-12 rounded-2xl bg-lilac font-semibold text-paper disabled:opacity-60"
         >
@@ -157,6 +165,7 @@ export function MedEditor({
         <button
           type="button"
           disabled={busy}
+          aria-busy={busy}
           onClick={onDelete}
           className="mt-3 w-full text-sm font-semibold text-clay"
         >
@@ -189,6 +198,7 @@ function KindButton({
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={selected}
       className={`min-h-12 rounded-2xl font-semibold ${
         selected ? 'bg-lagoon text-paper' : 'bg-mist text-ink'
       }`}

@@ -21,7 +21,7 @@ function AsNeededPage() {
       </p>
 
       {near.length === 0 && items.length > 0 ? (
-        <p className="mb-4 rounded-3xl bg-ok-soft px-4 py-3 text-sage">
+        <p role="status" className="mb-4 rounded-3xl bg-ok-soft px-4 py-3 text-sage">
           All as-needed medication is still within its window.
         </p>
       ) : null}
