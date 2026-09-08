@@ -1,0 +1,234 @@
+import { createFileRoute } from '@tanstack/react-router'
+import { useMemo, useState } from 'react'
+import {
+  draftFromMedication,
+  MedEditor,
+  type MedDraft,
+} from '../components/med-editor.tsx'
+import { PersonBar } from '../components/person-bar.tsx'
+import { useApp } from '../context/app-context.tsx'
+import {
+  createMedication,
+  deleteMedication,
+  renamePerson,
+  updateMedication,
+} from '../lib/api.ts'
+import type { Medication, MedicationInput } from '../lib/types.ts'
+
+export const Route = createFileRoute('/settings')({
+  component: SettingsPage,
+})
+
+function SettingsPage() {
+  const { today, people, refresh } = useApp()
+  const [helperName, setHelperName] = useState(
+    () => people.find((person) => person.role === 'helper')?.name ?? 'Samuel',
+  )
+  const [primaryName, setPrimaryName] = useState(
+    () => people.find((person) => person.role === 'primary')?.name ?? '',
+  )
+  const [nameError, setNameError] = useState<string | null>(null)
+  const [editor, setEditor] = useState<'new' | string | null>(null)
+  const [draft, setDraft] = useState<MedDraft>(() => draftFromMedication())
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const medications = useMemo(() => {
+    const daily = today?.daily.map((item) => item.medication) ?? []
+    const asNeeded = today?.asNeeded.map((item) => item.medication) ?? []
+    return [...asNeeded, ...daily]
+  }, [today])
+
+  const editing = medications.find((medication) => medication.id === editor) ?? null
+
+  function openNew() {
+    setDraft(draftFromMedication())
+    setEditor('new')
+    setError(null)
+  }
+
+  function openEdit(medication: Medication) {
+    setDraft(draftFromMedication(medication))
+    setEditor(medication.id)
+    setError(null)
+  }
+
+  async function saveNames() {
+    const helper = people.find((person) => person.role === 'helper')
+    const primary = people.find((person) => person.role === 'primary')
+    if (!helper || !primary) return
+    if (!primaryName.trim()) {
+      setNameError('Her name is needed.')
+      return
+    }
+    setNameError(null)
+    await renamePerson(helper.id, helperName.trim() || 'Samuel')
+    await renamePerson(primary.id, primaryName.trim())
+    await refresh()
+  }
+
+  async function saveMedication() {
+    setBusy(true)
+    setError(null)
+    try {
+      const input = toInput(draft)
+      if (editor === 'new') {
+        await createMedication(input)
+      } else if (editor) {
+        await updateMedication(editor, input)
+      }
+      await refresh()
+      setEditor(null)
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Could not save.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function removeMedication() {
+    if (!editor || editor === 'new') return
+    if (!window.confirm('Remove this medication and its logs?')) return
+    setBusy(true)
+    try {
+      await deleteMedication(editor)
+      await refresh()
+      setEditor(null)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div>
+      <PersonBar subtitle="Settings" />
+
+      <section className="mb-6 rounded-3xl bg-paper p-4">
+        <h2 className="text-lg font-semibold">Household names</h2>
+        <p className="mt-1 text-sm text-mute">
+          You can both open the same app, fill things in, and see the same result.
+        </p>
+        <label className="mt-4 block text-sm font-semibold text-mute">Your name</label>
+        <input
+          className="field mt-2"
+          value={helperName}
+          onChange={(event) => setHelperName(event.target.value)}
+          onBlur={() => void saveNames()}
+        />
+        <label className="mt-4 block text-sm font-semibold text-mute">Her name</label>
+        <input
+          className="field mt-2"
+          value={primaryName}
+          onChange={(event) => setPrimaryName(event.target.value)}
+          onBlur={() => void saveNames()}
+        />
+        {nameError ? <p className="mt-2 text-sm text-clay">{nameError}</p> : null}
+      </section>
+
+      {editor ? (
+        <div className="mb-6">
+          <MedEditor
+            title={editor === 'new' ? 'New medication' : `Edit ${editing?.name ?? ''}`}
+            draft={draft}
+            onChange={setDraft}
+            onSave={() => void saveMedication()}
+            onCancel={() => setEditor(null)}
+            onDelete={editor === 'new' ? undefined : () => void removeMedication()}
+            busy={busy}
+            error={error}
+          />
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={openNew}
+          className="mb-6 min-h-14 w-full rounded-3xl bg-lilac font-semibold text-paper"
+        >
+          Add medication
+        </button>
+      )}
+
+      <MedicationGroup
+        title="As-needed"
+        hint="Limits and warnings live here."
+        items={medications.filter((medication) => medication.kind === 'as_needed')}
+        onEdit={openEdit}
+      />
+      <MedicationGroup
+        title="Daily"
+        hint="Routine doses and whether they are moving."
+        items={medications.filter((medication) => medication.kind === 'daily')}
+        onEdit={openEdit}
+      />
+
+      <section className="mt-6 rounded-3xl bg-paper p-4 text-sm text-mute">
+        <h2 className="text-base font-semibold text-ink">On your phone</h2>
+        <p className="mt-2">
+          Install PillPath from the browser menu, or use Share → Add to Home
+          Screen on iPhone. Weather and flare-up tracking can come later.
+        </p>
+      </section>
+    </div>
+  )
+}
+
+function MedicationGroup({
+  title,
+  hint,
+  items,
+  onEdit,
+}: {
+  title: string
+  hint: string
+  items: Medication[]
+  onEdit: (medication: Medication) => void
+}) {
+  return (
+    <section className="mb-6">
+      <h2 className="text-lg font-semibold">{title}</h2>
+      <p className="mb-3 text-sm text-mute">{hint}</p>
+      {items.length === 0 ? (
+        <p className="rounded-3xl bg-paper px-4 py-4 text-mute">None yet.</p>
+      ) : (
+        <ul className="space-y-2">
+          {items.map((medication) => (
+            <li key={medication.id}>
+              <button
+                type="button"
+                onClick={() => onEdit(medication)}
+                className="flex min-h-14 w-full items-center justify-between rounded-3xl bg-paper px-4 text-left"
+              >
+                <span className="font-semibold">{medication.name}</span>
+                <span className="text-sm text-mute">
+                  {medication.kind === 'as_needed'
+                    ? `max ${medication.maxAmount} / ${medication.windowHours}h`
+                    : `${medication.targetDose} ${medication.unit}`}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}
+
+function toInput(draft: MedDraft): MedicationInput {
+  if (draft.kind === 'as_needed') {
+    return {
+      name: draft.name,
+      kind: 'as_needed',
+      unit: draft.unit,
+      maxAmount: Number(draft.maxAmount),
+      windowHours: Number(draft.windowHours),
+    }
+  }
+  return {
+    name: draft.name,
+    kind: 'daily',
+    unit: draft.unit,
+    targetDose: Number(draft.targetDose),
+    trend: draft.trend,
+    notes: draft.notes,
+  }
+}
