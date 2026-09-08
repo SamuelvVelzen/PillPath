@@ -1,0 +1,19 @@
+---
+description: Git author identity and commit size for this personal repo
+alwaysApply: true
+---
+
+# Git identity
+
+This repo is personal. Never use the work ECI Git identity.
+
+When creating commits here:
+
+- `user.name`: Samuel van Velzen
+- `user.email`: samuelvvelzen@icloud.com
+
+Prefer the local repo config (already set). Do not change the global Git config.
+
+# Commit size
+
+Make small, focused commits by concern (scaffold, worker, shared lib, feature, docs). Do not squash the whole app into one commit.
