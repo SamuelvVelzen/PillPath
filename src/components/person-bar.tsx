@@ -2,7 +2,9 @@ import { ThemeToggle } from './theme-toggle.tsx'
 import { useApp } from '../context/app-context.tsx'
 
 export function PersonBar({ subtitle }: { subtitle: string }) {
-  const { people, personId, setPersonId, person } = useApp()
+  const { helper, primary } = useApp()
+  const helperName = helper?.name ?? 'Samuel'
+  const forName = primary?.name
 
   return (
     <header className="mb-6">
@@ -14,30 +16,10 @@ export function PersonBar({ subtitle }: { subtitle: string }) {
       </div>
       <h1 className="mt-1 text-2xl font-semibold text-ink lg:text-3xl">{subtitle}</h1>
       <p className="mt-1 text-mute">
-        Logging as {person?.name ?? 'you'}. Both of you share the same list.
+        {forName
+          ? `For ${forName}. ${helperName} can log for her — one shared list, not two accounts.`
+          : `${helperName} can log for her. One shared list, not two accounts.`}
       </p>
-      <div
-        className="mt-4 grid max-w-md grid-cols-2 gap-2"
-        role="group"
-        aria-label="Who is logging"
-      >
-        {people.map((entry) => {
-          const selected = entry.id === personId
-          return (
-            <button
-              key={entry.id}
-              type="button"
-              onClick={() => setPersonId(entry.id)}
-              aria-pressed={selected}
-              className={`min-h-12 rounded-2xl px-3 text-sm font-semibold ${
-                selected ? 'bg-lagoon text-paper' : 'bg-paper text-ink'
-              }`}
-            >
-              {entry.name}
-            </button>
-          )
-        })}
-      </div>
     </header>
   )
 }

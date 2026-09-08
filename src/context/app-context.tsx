@@ -24,6 +24,8 @@ type AppContextValue = {
   people: Person[]
   personId: string
   person: Person | undefined
+  helper: Person | undefined
+  primary: Person | undefined
   needsOnboarding: boolean
   setPersonId: (id: string) => void
   completeOnboarding: () => void
@@ -54,6 +56,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setPersonIdState(fallback)
         storePersonId(fallback)
       }
+    }
+    const helperPerson = payload.people.find((person) => person.role === 'helper')
+    if (helperPerson && personId !== helperPerson.id) {
+      setPersonIdState(helperPerson.id)
+      storePersonId(helperPerson.id)
     }
   }, [personId])
 
@@ -86,10 +93,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const addDose = useCallback(
     async (medicationId: string, amount: number) => {
-      await logDose({ medicationId, loggedBy: personId, amount })
+      const loggedBy =
+        today?.people.find((entry) => entry.role === 'helper')?.id ??
+        personId ??
+        'person-samuel'
+      await logDose({ medicationId, loggedBy, amount })
       await refresh()
     },
-    [personId, refresh],
+    [personId, refresh, today?.people],
   )
 
   const removeDose = useCallback(
@@ -101,7 +112,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   const people = today?.people ?? []
-  const person = people.find((entry) => entry.id === personId)
+  const helper = people.find((entry) => entry.role === 'helper')
+  const primary = people.find((entry) => entry.role === 'primary')
+  const person = helper ?? people.find((entry) => entry.id === personId)
 
   const value = useMemo(
     () => ({
@@ -111,6 +124,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       people,
       personId,
       person,
+      helper,
+      primary,
       needsOnboarding,
       setPersonId,
       completeOnboarding,
@@ -125,6 +140,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       people,
       personId,
       person,
+      helper,
+      primary,
       needsOnboarding,
       setPersonId,
       completeOnboarding,

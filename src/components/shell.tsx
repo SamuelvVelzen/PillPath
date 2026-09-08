@@ -30,7 +30,7 @@ export function Shell() {
           PillPath
         </p>
         <p className="mt-2 px-3 text-sm text-mute">
-          Daily and as-needed medication, on a shared path.
+          One shared path. You can log for her from here.
         </p>
         <nav className="mt-8 flex-1" aria-label="Main">
           <NavList pathname={pathname} variant="sidebar" />

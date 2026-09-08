@@ -10,7 +10,6 @@ export function Onboarding() {
   const [primaryName, setPrimaryName] = useState(
     primary?.name === 'Partner' ? '' : (primary?.name ?? ''),
   )
-  const [who, setWho] = useState(helper?.id ?? 'person-samuel')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -18,7 +17,7 @@ export function Onboarding() {
     if (!helper || !primary) return
     const herName = primaryName.trim()
     if (!herName) {
-      setError('Add her name so logs stay clear.')
+      setError('Add her name so the list is clearly hers.')
       return
     }
     setBusy(true)
@@ -26,7 +25,7 @@ export function Onboarding() {
     try {
       await renamePerson(helper.id, helperName.trim() || 'Samuel')
       await renamePerson(primary.id, herName)
-      setPersonId(who)
+      setPersonId(helper.id)
       await refresh()
       completeOnboarding()
     } catch (caught) {
@@ -51,8 +50,8 @@ export function Onboarding() {
           A quieter way to keep track
         </h2>
         <p className="mt-3 text-mute">
-          You can fill this in for her, and she can fill it in too. Everything
-          stays on one shared path.
+          You can log medication for her from this app. There is one shared
+          usage — no second account to set up.
         </p>
 
         <label className="mt-8 block text-sm font-semibold text-mute" htmlFor="onboarding-helper">
@@ -77,32 +76,6 @@ export function Onboarding() {
           autoComplete="name"
           onChange={(event) => setPrimaryName(event.target.value)}
         />
-
-        <p className="mt-6 text-sm font-semibold text-mute" id="onboarding-who">
-          Who is using the phone now?
-        </p>
-        <div className="mt-2 grid grid-cols-2 gap-2" role="group" aria-labelledby="onboarding-who">
-          <button
-            type="button"
-            aria-pressed={who === helper?.id}
-            onClick={() => helper && setWho(helper.id)}
-            className={`min-h-14 rounded-2xl font-semibold ${
-              who === helper?.id ? 'bg-lagoon text-paper' : 'bg-paper text-ink'
-            }`}
-          >
-            Me
-          </button>
-          <button
-            type="button"
-            aria-pressed={who === primary?.id}
-            onClick={() => primary && setWho(primary.id)}
-            className={`min-h-14 rounded-2xl font-semibold ${
-              who === primary?.id ? 'bg-lagoon text-paper' : 'bg-paper text-ink'
-            }`}
-          >
-            Her
-          </button>
-        </div>
 
         {error ? (
           <p className="mt-4 text-clay" role="alert">

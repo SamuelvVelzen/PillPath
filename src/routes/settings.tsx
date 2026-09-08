@@ -109,7 +109,8 @@ function SettingsPage() {
       <section className="mb-6 rounded-3xl bg-paper p-4 lg:mb-0">
         <h2 className="text-lg font-semibold">Household names</h2>
         <p className="mt-1 text-sm text-mute">
-          You can both open the same app, fill things in, and see the same result.
+          Medications belong to her. You can log them on her behalf. Both of you
+          see the same usage — there are not two accounts.
         </p>
         <label className="mt-4 block text-sm font-semibold text-mute" htmlFor="helper-name">
           Your name
@@ -123,7 +124,7 @@ function SettingsPage() {
           onBlur={() => void saveNames()}
         />
         <label className="mt-4 block text-sm font-semibold text-mute" htmlFor="primary-name">
-          Her name
+          Medications are for
         </label>
         <input
           id="primary-name"
