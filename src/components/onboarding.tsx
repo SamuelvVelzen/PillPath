@@ -50,8 +50,7 @@ export function Onboarding() {
           A quieter way to keep track
         </h2>
         <p className="mt-3 text-mute">
-          You can log medication for her from this app. There is one shared
-          usage — no second account to set up.
+          Keep daily and as-needed medication in one quiet place.
         </p>
 
         <label className="mt-8 block text-sm font-semibold text-mute" htmlFor="onboarding-helper">

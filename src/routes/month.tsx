@@ -56,7 +56,7 @@ function MonthPage() {
     <div>
       <PersonBar subtitle="Month" />
       <p className="mb-5 text-mute">
-        One shared month. Sage dots are daily doses; lilac dots are as-needed.
+        Sage dots are daily doses; lilac dots are as-needed.
       </p>
 
       <div className="mb-5">
